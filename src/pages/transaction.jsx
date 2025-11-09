@@ -1,4 +1,47 @@
 import { useEffect, useState } from "react";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../services/firebase";
+
+export default function Transactions() {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, "transactions"), (snapshot) => {
+      const arr = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setData(arr);
+    });
+    return () => unsub();
+  }, []);
+
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Transaksi Terbaru</h2>
+      <table className="w-full border-collapse border">
+        <thead>
+          <tr className="bg-blue-100 text-left">
+            <th className="border p-2">Tanggal</th>
+            <th className="border p-2">Customer</th>
+            <th className="border p-2">Mitra</th>
+            <th className="border p-2">Total</th>
+            <th className="border p-2">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((t) => (
+            <tr key={t.id}>
+              <td className="border p-2">{t.date}</td>
+              <td className="border p-2">{t.customerName}</td>
+              <td className="border p-2">{t.mitraName}</td>
+              <td className="border p-2">Rp {t.total.toLocaleString()}</td>
+              <td className="border p-2 text-green-600">{t.status}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+import { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, onSnapshot, doc, updateDoc } from "firebase/firestore";
 

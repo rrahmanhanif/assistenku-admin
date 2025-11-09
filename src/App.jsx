@@ -5,7 +5,24 @@ import Transactions from "./pages/Transactions";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+import DashboardAdmin from "./pages/DashboardAdmin";
+import Reports from "./pages/Reports";
 
+<Route path="/reports" element={<Reports />} />
+
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/dashboard" element={<DashboardAdmin />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);

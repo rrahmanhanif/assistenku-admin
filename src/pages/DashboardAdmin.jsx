@@ -2,7 +2,16 @@ import MapMonitor from "../components/MapMonitor";
 import MitraList from "../components/MitraList";
 import CustomerList from "../components/CustomerList";
 import Transactions from "./Transactions";
+import Notification from "../components/Notification";
 
+function DashboardAdmin() {
+  return (
+    <div className="p-6">
+      <Notification />
+      {/* ...konten dashboard lainnya */}
+    </div>
+  );
+}
 const DashboardAdmin = () => {
   return (
     <div className="dashboard">

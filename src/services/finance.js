@@ -7,6 +7,27 @@ export async function processPayment(orderId, total, mitraId, customerId) {
   const mitraFee = total * 0.75;
   const gatewayFee = total * 0.02;
 
+import { sendEmail, pushPopup } from "./notify";
+
+export async function processPayment(orderId, total, mitraId, customerId) {
+  // ... kode pembagian hasil seperti tahap 10
+  // sesudah update saldo
+  await sendEmail(
+    "customer@email.com",
+    "Pembayaran Berhasil",
+    `Transaksi #${orderId} sebesar Rp${total.toLocaleString()} telah diproses.`
+  );
+  await sendEmail(
+    "mitra@email.com",
+    "Order Selesai",
+    `Anda menerima Rp${(total * 0.75).toLocaleString()} dari order #${orderId}.`
+  );
+
+  await pushPopup(customerId, "customer", "Transaksi", "Pembayaran berhasil!");
+  await pushPopup(mitraId, "mitra", "Pendapatan", "Saldo anda bertambah!");
+  await pushPopup("admin", "core", "Notifikasi", `Order #${orderId} sukses.`);
+}
+  
   const customerRef = doc(db, "customers", customerId);
   const mitraRef = doc(db, "mitra", mitraId);
   const coreRef = doc(db, "core", "saldo");
@@ -46,5 +67,25 @@ export async function withdrawMitra(mitraId, amount) {
     status: "approved",
   });
 
+  import { sendEmail, pushPopup } from "./notify";
+
+export async function processPayment(orderId, total, mitraId, customerId) {
+  // ... kode pembagian hasil seperti tahap 10
+  // sesudah update saldo
+  await sendEmail(
+    "customer@email.com",
+    "Pembayaran Berhasil",
+    `Transaksi #${orderId} sebesar Rp${total.toLocaleString()} telah diproses.`
+  );
+  await sendEmail(
+    "mitra@email.com",
+    "Order Selesai",
+    `Anda menerima Rp${(total * 0.75).toLocaleString()} dari order #${orderId}.`
+  );
+
+  await pushPopup(customerId, "customer", "Transaksi", "Pembayaran berhasil!");
+  await pushPopup(mitraId, "mitra", "Pendapatan", "Saldo anda bertambah!");
+  await pushPopup("admin", "core", "Notifikasi", `Order #${orderId} sukses.`);
+}
   return { success: true };
 }

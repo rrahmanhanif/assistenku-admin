@@ -1,31 +1,18 @@
 // src/App.jsx
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
-import WithdrawPage from "./pages/WithdrawPage";
-
-export default function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/withdraw" element={<WithdrawPage />} />
-      </Routes>
-    </Router>
-  );
-}
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 
+// Import halaman
 import Login from "./pages/Login";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import Transactions from "./pages/Transactions";
 import Reports from "./pages/Reports";
 import Wallet from "./pages/Wallet";
-<Route path="/wallet" element={<Wallet />} />
+import WithdrawPage from "./pages/WithdrawPage"; // jika ada
 
-function App() {
+export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -52,13 +39,13 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Default route */}
+        {/* 🔹 Default route */}
         <Route
           path="/"
           element={user ? <Navigate to="/dashboard" /> : <Login />}
         />
 
-        {/* Protected routes */}
+        {/* 🔹 Halaman utama (hanya bisa diakses jika login) */}
         <Route
           path="/dashboard"
           element={user ? <DashboardAdmin /> : <Navigate to="/login" />}
@@ -71,14 +58,22 @@ function App() {
           path="/reports"
           element={user ? <Reports /> : <Navigate to="/login" />}
         />
+        <Route
+          path="/wallet"
+          element={user ? <Wallet /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/withdraw"
+          element={user ? <WithdrawPage /> : <Navigate to="/login" />}
+        />
 
-        {/* Auth route */}
+        {/* 🔹 Halaman login */}
         <Route
           path="/login"
           element={!user ? <Login /> : <Navigate to="/dashboard" />}
         />
 
-        {/* Fallback route */}
+        {/* 🔹 Fallback jika URL tidak dikenal */}
         <Route
           path="*"
           element={
@@ -89,24 +84,3 @@ function App() {
     </BrowserRouter>
   );
 }
-
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
-import Transactions from "./pages/Transactions"; // 🆕
-import Login from "./pages/Login";
-
-function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/transactions" element={<Transactions />} /> {/* 🆕 */}
-      </Routes>
-    </Router>
-  );
-}
-
-export default App;
-
-export default App;

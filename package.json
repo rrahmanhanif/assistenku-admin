@@ -1,0 +1,22 @@
+{
+  "name": "assistenku-core",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "firebase": "^10.12.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.15.0",
+    "react-leaflet": "^4.3.0",
+    "leaflet": "^1.9.4",
+    "emailjs-com": "^3.2.0"
+  },
+  "devDependencies": {
+    "vite": "^5.2.0"
+  }
+}

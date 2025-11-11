@@ -22,3 +22,8 @@
     "vite": "^5.3.4"
   }
 }
+"scripts": {
+  "dev": "vite --open",
+  "build": "vite build",
+  "preview": "vite preview --open"
+}

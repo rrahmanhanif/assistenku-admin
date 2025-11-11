@@ -1,3 +1,4 @@
+// node-entry.js
 import parseAst from "./parseAst.js";
 
 export function startBuild() {

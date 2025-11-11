@@ -1,102 +1,95 @@
 // src/services/finance.js
-import { db } from "./firebase";
-import { doc, updateDoc, getDoc } from "firebase/firestore";
-import { sendEmail, pushPopup } from "./notify";
+import { doc, getDoc, runTransaction, addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
+import { calculateOrder } from "./calcPricing";
+import { sendEmail, pushPopup } from "../notify";
 
-// === 🔹 TRANSFER OTOMATIS: PEMBAGIAN HASIL ===
-export async function processPayment(orderId, total, mitraId, customerId) {
+function round(v) { return Math.round(v); }
+
+/**
+ * Jalankan pembayaran otomatis: customer → core + mitra
+ */
+export async function processPayment({
+  orderId,
+  serviceKey,
+  durationType = "HOURLY",
+  baseRatePerHour,
+  demand = 1,
+  supply = 1,
+  mitraId,
+  customerId,
+  nightShift = false,
+}) {
+  const coreFeePercent = Number(import.meta.env.VITE_CORE_FEE_PERCENT || 0.25);
+  const gatewayFeePercent = Number(import.meta.env.VITE_GATEWAY_FEE_PERCENT || 0.015);
+  const gatewayThreshold = Number(import.meta.env.VITE_GATEWAY_THRESHOLD || 0.02);
+
+  const calc = calculateOrder({
+    serviceKey,
+    durationType,
+    baseRatePerHour,
+    demand,
+    supply,
+    coreFeePercent,
+    gatewayFeePercent,
+    gatewayThreshold,
+    nightShift,
+  });
+
+  const txRecord = {
+    orderId,
+    serviceKey,
+    durationType,
+    totalOrderAllIn: calc.totalOrderAllIn,
+    totalChargedToCustomer: calc.totalChargedToCustomer,
+    mitraAmount: calc.mitraAmount,
+    coreAmount: calc.coreAmount,
+    gatewayRecorded: calc.gatewayRecorded,
+    createdAt: serverTimestamp(),
+  };
+
   try {
-    const coreFee = total * 0.25; // 25% untuk core
-    const mitraFee = total * 0.75; // 75% untuk mitra
-    const gatewayFee = total * 0.02; // biaya gateway 2%
+    await runTransaction(db, async (t) => {
+      const mitraRef = doc(db, "mitra", mitraId);
+      const custRef = doc(db, "customers", customerId);
+      const coreRef = doc(db, "core", "balance");
 
-    const customerRef = doc(db, "customers", customerId);
-    const mitraRef = doc(db, "mitra", mitraId);
-    const coreRef = doc(db, "core", "saldo");
+      const [mSnap, cSnap, coreSnap] = await Promise.all([
+        t.get(mitraRef),
+        t.get(custRef),
+        t.get(coreRef),
+      ]);
 
-    const [customerSnap, mitraSnap, coreSnap] = await Promise.all([
-      getDoc(customerRef),
-      getDoc(mitraRef),
-      getDoc(coreRef),
-    ]);
+      if (!mSnap.exists()) throw new Error("Mitra tidak ditemukan");
+      if (!cSnap.exists()) throw new Error("Customer tidak ditemukan");
+      if (!coreSnap.exists()) t.set(coreRef, { saldo: 0 });
 
-    const customerSaldo = customerSnap.data().saldo - total;
-    const mitraSaldo = mitraSnap.data().saldo + mitraFee;
-    const coreSaldo = coreSnap.data().saldo + (coreFee - gatewayFee);
+      const saldoCust = cSnap.data().saldo || 0;
+      if (saldoCust < calc.totalChargedToCustomer)
+        throw new Error("Saldo customer tidak cukup");
+
+      const saldoMitra = mSnap.data().saldo || 0;
+      const saldoCore = coreSnap.exists() ? coreSnap.data().saldo || 0 : 0;
+
+      t.update(custRef, { saldo: round(saldoCust - calc.totalChargedToCustomer) });
+      t.update(mitraRef, { saldo: round(saldoMitra + calc.mitraAmount) });
+      t.update(coreRef, { saldo: round(saldoCore + calc.coreAmount) });
+
+      const txCol = collection(db, "transactions");
+      t.set(doc(txCol, orderId), { ...txRecord, status: "success", processedAt: serverTimestamp() });
+    });
 
     await Promise.all([
-      updateDoc(customerRef, { saldo: customerSaldo }),
-      updateDoc(mitraRef, { saldo: mitraSaldo }),
-      updateDoc(coreRef, { saldo: coreSaldo }),
+      pushPopup(customerId, "customer", "Transaksi", `Order ${orderId} sukses Rp${calc.totalChargedToCustomer.toLocaleString("id-ID")}`),
+      pushPopup(mitraId, "mitra", "Pendapatan", `Saldo +Rp${calc.mitraAmount.toLocaleString("id-ID")}`),
+      pushPopup("admin", "core", "Info", `Transaksi ${orderId} selesai.`),
+      sendEmail("customer@email.com", "Pembayaran Berhasil", `Transaksi #${orderId} senilai Rp${calc.totalChargedToCustomer.toLocaleString("id-ID")} berhasil.`),
+      sendEmail("mitra@email.com", "Pendapatan Baru", `Anda menerima Rp${calc.mitraAmount.toLocaleString("id-ID")} dari order #${orderId}.`)
     ]);
 
-    // 🔔 Notifikasi realtime
-    await Promise.all([
-      sendEmail(
-        "customer@email.com",
-        "Pembayaran Berhasil",
-        `Transaksi #${orderId} sebesar Rp${total.toLocaleString()} telah diproses.`
-      ),
-      sendEmail(
-        "mitra@email.com",
-        "Order Selesai",
-        `Anda menerima Rp${mitraFee.toLocaleString()} dari order #${orderId}.`
-      ),
-      pushPopup(customerId, "customer", "Transaksi", "Pembayaran berhasil!"),
-      pushPopup(mitraId, "mitra", "Pendapatan", "Saldo anda bertambah!"),
-      pushPopup("admin", "core", "Notifikasi", `Order #${orderId} sukses.`),
-    ]);
-
-    return { success: true };
-  } catch (error) {
-    console.error("❌ Gagal memproses pembayaran:", error);
-    return { success: false, error: error.message };
-  }
-}
-
-// === 🔹 PENARIKAN DANA MITRA ===
-export async function withdrawMitra(mitraId, amount) {
-  try {
-    const mitraRef = doc(db, "mitra", mitraId);
-    const mitraSnap = await getDoc(mitraRef);
-    const saldoSekarang = mitraSnap.data().saldo;
-
-    if (saldoSekarang < amount) {
-      throw new Error("Saldo tidak cukup");
-    }
-
-    const saldoBaru = saldoSekarang - amount;
-    await updateDoc(mitraRef, { saldo: saldoBaru });
-
-    // 🔔 Notifikasi realtime dan log penarikan
-    await Promise.all([
-      pushPopup(
-        mitraId,
-        "mitra",
-        "Penarikan",
-        `Penarikan Rp${amount.toLocaleString()} disetujui otomatis.`
-      ),
-      sendEmail(
-        "mitra@email.com",
-        "Penarikan Disetujui",
-        `Dana Rp${amount.toLocaleString()} telah dikirim.`
-      ),
-      pushPopup(
-        "admin",
-        "core",
-        "Penarikan",
-        `Mitra ${mitraId} menarik Rp${amount.toLocaleString()}`
-      ),
-      updateDoc(doc(db, "withdrawLogs", mitraId), {
-        lastWithdraw: new Date().toISOString(),
-        amount,
-        status: "approved",
-      }),
-    ]);
-
-    return { success: true };
-  } catch (error) {
-    console.error("❌ Gagal penarikan:", error);
-    return { success: false, error: error.message };
+    return { success: true, detail: calc };
+  } catch (e) {
+    console.error("processPayment error:", e);
+    return { success: false, error: e.message };
   }
         }

@@ -1,4 +1,5 @@
 "scripts": {
+  "dev:all": "concurrently \"npm run dev:core\" \"npm run dev:mitra\" \"npm run dev:customer\"",
   "dev:core": "vite --port 5173 --open",
   "dev:mitra": "vite --port 5174 --open",
   "dev:customer": "vite --port 5175 --open",

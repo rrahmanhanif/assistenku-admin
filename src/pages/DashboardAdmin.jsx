@@ -1,75 +1,62 @@
-// src/pages/DashboardAdmin.jsx
-import React from "react";
-import Navbar from "../components/Navbar";
-import MapMonitor from "../components/MapMonitor";
-import MitraList from "../components/MitraList";
-import CustomerList from "../components/CustomerList";
-import OrdersMonitor from "../components/OrdersMonitor";
-import Transactions from "./Transactions";
 import { useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
-import { auth } from "../firebase";
+import Navbar from "../components/Navbar";
 
-const DashboardAdmin = () => {
+export default function DashboardAdmin({ onLogout }) {
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate("/login");
-    } catch (error) {
-      console.error("Gagal logout:", error);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <Navbar onLogout={handleLogout} />
+    <div>
+      <Navbar onLogout={onLogout} />
+      <div style={{ padding: "2rem" }}>
+        <h2 style={{ color: "#0d6efd", marginBottom: "1rem" }}>Dashboard Admin Assistenku-Core</h2>
+        <p>Selamat datang di sistem manajemen Assistenku.</p>
 
-      {/* Konten utama */}
-      <div className="p-6">
-        {/* Header */}
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-blue-700">Dashboard Admin</h1>
-          <p className="text-gray-500">Pantau aktivitas Mitra & Customer</p>
-        </header>
-
-        {/* Grid utama */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* 🗺️ Peta Aktivitas */}
-          <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-white p-4 rounded-xl shadow-sm">
-            <h2 className="text-lg font-semibold mb-3 text-gray-700">Peta Aktivitas</h2>
-            <MapMonitor />
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+            gap: "1rem",
+            marginTop: "2rem",
+          }}
+        >
+          <div style={cardStyle}>
+            <h3>Data Keuangan</h3>
+            <p>Kelola laporan keuangan gabungan.</p>
+            <button style={btnStyle} onClick={() => navigate("/finance")}>
+              Buka Dashboard Keuangan
+            </button>
           </div>
 
-          {/* 👥 Mitra Aktif */}
-          <div className="bg-white p-4 rounded-xl shadow-sm">
-            <h2 className="text-lg font-semibold mb-3 text-gray-700">Mitra Aktif</h2>
-            <MitraList />
+          <div style={cardStyle}>
+            <h3>Kelola Mitra</h3>
+            <p>Lihat data mitra dan performanya.</p>
+            <button style={btnStyle}>Masuk Menu Mitra</button>
           </div>
 
-          {/* 👤 Customer Aktif */}
-          <div className="bg-white p-4 rounded-xl shadow-sm">
-            <h2 className="text-lg font-semibold mb-3 text-gray-700">Customer Aktif</h2>
-            <CustomerList />
-          </div>
-
-          {/* 🧾 Pesanan Berlangsung */}
-          <div className="bg-white p-4 rounded-xl shadow-sm md:col-span-2">
-            <h2 className="text-lg font-semibold mb-3 text-gray-700">Pesanan Berlangsung</h2>
-            <OrdersMonitor />
-          </div>
-
-          {/* 💰 Transaksi */}
-          <div className="bg-white p-4 rounded-xl shadow-sm md:col-span-3">
-            <h2 className="text-lg font-semibold mb-3 text-gray-700">Transaksi Terbaru</h2>
-            <Transactions />
+          <div style={cardStyle}>
+            <h3>Kelola Customer</h3>
+            <p>Lihat data pengguna aplikasi customer.</p>
+            <button style={btnStyle}>Masuk Menu Customer</button>
           </div>
         </div>
       </div>
     </div>
   );
+}
+
+const cardStyle = {
+  background: "#f8f9fa",
+  borderRadius: "10px",
+  padding: "1rem",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
 };
 
-export default DashboardAdmin;
+const btnStyle = {
+  background: "#0d6efd",
+  color: "white",
+  border: "none",
+  borderRadius: "6px",
+  padding: "8px 12px",
+  marginTop: "10px",
+  cursor: "pointer",
+};

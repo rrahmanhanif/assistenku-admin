@@ -1,8 +1,29 @@
-"scripts": {
-  "dev:all": "concurrently \"npm run dev:core\" \"npm run dev:mitra\" \"npm run dev:customer\"",
-  "dev:core": "vite --port 5173 --open",
-  "dev:mitra": "vite --port 5174 --open",
-  "dev:customer": "vite --port 5175 --open",
-  "build": "vite build",
-  "preview": "vite preview"
+{
+  "name": "assistenku-core",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "firebase": "^10.8.0",
+    "leaflet": "^1.9.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-leaflet": "^4.2.1",
+    "react-router-dom": "^6.22.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "@vite-pwa/assets-generator": "^0.2.4",
+    "@vite-pwa/vite-plugin": "^0.17.0",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "vite": "^5.0.0"
+  }
 }

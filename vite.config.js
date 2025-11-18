@@ -13,6 +13,8 @@ export default defineConfig({
         short_name: "Assistenku",
         description: "Aplikasi Admin Assistenku - PWA",
         theme_color: "#1E40AF",
+        background_color: "#ffffff",
+        display: "standalone",
         icons: [
           {
             src: "pwa-192x192.png",
@@ -28,4 +30,9 @@ export default defineConfig({
       }
     })
   ],
+  resolve: {
+    alias: {
+      "@": "/src"
+    }
+  }
 });

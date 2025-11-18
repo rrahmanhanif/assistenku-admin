@@ -1,44 +1,21 @@
 // src/core/pricing.js
 
-/**
- * Hitung total biaya layanan Assistenku
- * @param {Object} params
- * @param {"jam"|"harian"|"mingguan"|"bulanan"} params.tipe
- * @param {number} params.durasi
- * @param {boolean} params.isRamai - true jika permintaan sedang tinggi
- * @param {boolean} params.isLembur - true jika melewati jam kerja normal
- * @param {boolean} params.isCancel - true jika customer membatalkan
- * @param {number} params.baseRate - tarif dasar per jam/hari/minggu/bulan
- * @returns {Object} rincian biaya
- */
-export function hitungBiaya({
-  tipe,
-  durasi,
-  isRamai,
-  isLembur,
-  isCancel,
-  baseRate,
-}) {
-  let total = baseRate * durasi;
+export const PRICING = {
+  ART: { unit: "hour", min: 20600, max: 23400, defaultPerHour: 22000 },
+  CAREGIVER: { unit: "hour", min: 35000, max: 43000, defaultPerHour: 39000 },
+  DRIVER: { unit: "hour", min: 35000, max: 45000, defaultPerHour: 40000 },
+  PENJAGA_TOKO: { unit: "hour", min: 22000, max: 27000, defaultPerHour: 24500 },
+  LAINNYA: { unit: "hour", min: 25000, max: 32000, defaultPerHour: 28500 },
+};
 
-  // 🔹 Lembur (x1.5 tiap jam lembur)
-  if (isLembur) total *= 1.5;
+// Hitung biaya lengkap
+export function hitungBiaya({ serviceKey, duration }) {
+  const s = PRICING[serviceKey];
+  if (!s) throw new Error("Unknown serviceKey " + serviceKey);
 
-  // 🔹 Surge demand (kenaikan 20% jika ramai)
-  if (isRamai) total *= 1.2;
+  const biaya = s.defaultPerHour * duration;
+  const platformFee = Math.round(biaya * 0.15);
+  const grandTotal = biaya + platformFee;
 
-  // 🔹 Pembatalan (2% dari total jika dibatalkan <24 jam)
-  let biayaCancel = isCancel ? total * 0.02 : 0;
-
-  // 🔹 Biaya gateway (1–2%)
-  const gatewayFee = total * 0.015; // rata-rata 1.5%
-
-  return {
-    tipe,
-    durasi,
-    total,
-    biayaCancel,
-    gatewayFee,
-    grandTotal: total + gatewayFee + biayaCancel,
-  };
+  return { biaya, platformFee, grandTotal };
 }

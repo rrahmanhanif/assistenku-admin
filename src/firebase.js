@@ -1,24 +1,38 @@
 // src/firebase.js
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
-const appRole = import.meta.env.VITE_APP_ROLE || "core";
-
+// Your Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: "AIzaSyBSL87qkuwSQU8aXvLuu24nV7jUoX2mOSA",
+  authDomain: "assistenku-8ef85.firebaseapp.com",
+  projectId: "assistenku-8ef85",
+  storageBucket: "assistenku-8ef85.firebasestorage.app",
+  messagingSenderId: "320243806907",
+  appId: "1:320243806907:web:50ecedb9a20063d7ee2f9e",
+  measurementId: "G-ZKVLZGE552"
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+// Initialize Firestore
 export const db = getFirestore(app);
 
-console.log(`🔗 Firebase connected (${appRole.toUpperCase()}) → Project: ${firebaseConfig.projectId}`);
+// Initialize Auth
+export const auth = getAuth(app);
+
+// Initialize Storage
+export const storage = getStorage(app);
+
+// Optional Analytics (tidak error di HP, hanya running di HTTPS)
+isSupported().then((yes) => {
+  if (yes) {
+    getAnalytics(app);
+  }
+});
 
 export default app;

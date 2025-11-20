@@ -13,12 +13,16 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.3",
+
     "leaflet": "^1.9.4",
     "react-leaflet": "^4.2.1",
 
     "@supabase/supabase-js": "^2.45.4",
 
-    "@emailjs/browser": "^4.3.0"
+    "@emailjs/browser": "^4.3.0",
+
+    "chart.js": "^4.4.1",
+    "react-chartjs-2": "^5.2.0"
   },
   "devDependencies": {
     "vite": "^5.0.0",

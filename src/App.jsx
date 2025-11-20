@@ -4,74 +4,68 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 
-import Login from "./pages/Login";
-import DashboardAdmin from "./pages/DashboardAdmin";
-import DashboardFinance from "./pages/DashboardFinance";
+// PAGES
+import Login from "./pages/Login.jsx";
+import DashboardAdmin from "./pages/DashboardAdmin.jsx";
+import DashboardFinanceEnterprise from "./pages/DashboardFinanceEnterprise.jsx";
 
-function App() {
+export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
     });
-
-    return () => unsubscribe();
+    return () => unsub();
   }, []);
 
-  const handleLogout = async () => {
+  const logoutNow = async () => {
     await signOut(auth);
     setUser(null);
   };
 
   if (loading) {
     return (
-      <div style={{ textAlign: "center", marginTop: "2rem" }}>
+      <p style={{ textAlign: "center", marginTop: "2rem" }}>
         Memuat aplikasi...
-      </div>
+      </p>
     );
   }
-
-  const RequireAuth = ({ children }) => {
-    return user ? children : <Navigate to="/" replace />;
-  };
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Halaman Login */}
+        {/* Login */}
         <Route
           path="/"
-          element={user ? <Navigate to="/dashboard" replace /> : <Login />}
+          element={user ? <Navigate to="/dashboard" /> : <Login />}
         />
 
         {/* Dashboard Admin */}
         <Route
           path="/dashboard"
           element={
-            <RequireAuth>
-              <DashboardAdmin onLogout={handleLogout} />
-            </RequireAuth>
+            user ? <DashboardAdmin onLogout={logoutNow} /> : <Navigate to="/" />
           }
         />
 
-        {/* Dashboard Finance */}
+        {/* Dashboard Finance Enterprise */}
         <Route
           path="/finance"
           element={
-            <RequireAuth>
-              <DashboardFinance onLogout={handleLogout} />
-            </RequireAuth>
+            user ? (
+              <DashboardFinanceEnterprise onLogout={logoutNow} />
+            ) : (
+              <Navigate to="/" />
+            )
           }
         />
 
-        {/* 404 Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   );
 }
-
-export default App;

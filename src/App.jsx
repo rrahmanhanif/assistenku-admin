@@ -1,8 +1,18 @@
+// src/App.jsx
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "./firebase";
 import { doc, getDoc } from "firebase/firestore";
+
+// Layout
+import SidebarLayout from "./components/SidebarLayout";
 
 // Pages
 import Login from "./pages/Login";
@@ -12,19 +22,13 @@ import Reports from "./pages/Reports";
 import Transactions from "./pages/Transactions";
 import Wallet from "./pages/Wallet";
 
-// Layout
-import SidebarLayout from "./components/SidebarLayout";
-
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ---------------------------
-  // CEK LOGIN + AMBIL ROLE
-  // ---------------------------
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setCurrentUser(null);
         setRole(null);
@@ -32,106 +36,94 @@ export default function App() {
         return;
       }
 
-      // Ambil role dari Firestore
-      const ref = doc(db, "core_users", user.uid);
-      const snap = await getDoc(ref);
-
-      if (!snap.exists()) {
-        await signOut(auth);
-        setCurrentUser(null);
-        setRole(null);
-      } else {
+      const snap = await getDoc(doc(db, "core_users", user.uid));
+      if (snap.exists()) {
         setCurrentUser(user);
         setRole(snap.data().role || "viewer");
+      } else {
+        await signOut(auth);
       }
 
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => unsub();
   }, []);
+
+  const logoutNow = async () => {
+    await signOut(auth);
+    setCurrentUser(null);
+    setRole(null);
+  };
 
   if (loading) return <div style={{ padding: 30 }}>Memuat...</div>;
 
-  // ---------------------------
-  // PROTECT ROUTE
-  // ---------------------------
-  function ProtectedRoute({ allow, children }) {
+  function ProtectedRoute({ children, allow }) {
     if (!currentUser) return <Navigate to="/" replace />;
     if (!allow.includes(role)) return <Navigate to="/dashboard" replace />;
     return children;
   }
 
-  // ---------------------------
-  // RENDER UTAMA
-  // ---------------------------
   return (
     <Router>
       <Routes>
-        {/* LOGIN */}
         <Route path="/" element={<Login />} />
 
-        {/* DASHBOARD (SEMUA ROLE BOLEH) */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute allow={["superadmin", "admin", "viewer"]}>
-              <SidebarLayout>
+              <SidebarLayout onLogout={logoutNow}>
                 <Dashboard />
               </SidebarLayout>
             </ProtectedRoute>
           }
         />
 
-        {/* FINANCE (KHUSUS SUPERADMIN) */}
         <Route
           path="/finance"
           element={
             <ProtectedRoute allow={["superadmin"]}>
-              <SidebarLayout>
+              <SidebarLayout onLogout={logoutNow}>
                 <DashboardFinanceEnterprise />
               </SidebarLayout>
             </ProtectedRoute>
           }
         />
 
-        {/* REPORTS */}
         <Route
           path="/reports"
           element={
             <ProtectedRoute allow={["superadmin", "admin"]}>
-              <SidebarLayout>
+              <SidebarLayout onLogout={logoutNow}>
                 <Reports />
               </SidebarLayout>
             </ProtectedRoute>
           }
         />
 
-        {/* TRANSACTIONS */}
         <Route
           path="/transactions"
           element={
             <ProtectedRoute allow={["superadmin", "admin"]}>
-              <SidebarLayout>
+              <SidebarLayout onLogout={logoutNow}>
                 <Transactions />
               </SidebarLayout>
             </ProtectedRoute>
           }
         />
 
-        {/* WALLET */}
         <Route
           path="/wallet"
           element={
             <ProtectedRoute allow={["superadmin", "admin"]}>
-              <SidebarLayout>
+              <SidebarLayout onLogout={logoutNow}>
                 <Wallet />
               </SidebarLayout>
             </ProtectedRoute>
           }
         />
 
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Router>

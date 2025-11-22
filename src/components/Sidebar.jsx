@@ -1,53 +1,52 @@
-import { Link, useLocation } from "react-router-dom";
-import { Home, FileText, Wallet, ArrowDownCircle, BarChart2 } from "lucide-react";
+// src/components/Sidebar.jsx
+import { NavLink } from "react-router-dom";
 
-export default function Sidebar() {
-  const location = useLocation();
-  const menuItems = [
-    { path: "/dashboard", label: "Dashboard", icon: <Home size={18} /> },
-    { path: "/transactions", label: "Transaksi", icon: <FileText size={18} /> },
-    { path: "/reports", label: "Laporan", icon: <BarChart2 size={18} /> },
-    { path: "/wallet", label: "Dompet", icon: <Wallet size={18} /> },
-    { path: "/withdraw", label: "Penarikan", icon: <ArrowDownCircle size={18} /> },
+export default function Sidebar({ role }) {
+  const menu = [
+    { to: "/dashboard", label: "Dashboard", allow: ["superadmin", "admin", "viewer"] },
+    { to: "/finance", label: "Finance", allow: ["superadmin", "admin"] },
+    { to: "/users", label: "Manajemen User", allow: ["superadmin"] },
   ];
 
   return (
     <div
       style={{
-        width: "220px",
+        width: "240px",
         background: "#0d6efd",
         color: "white",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
         minHeight: "100vh",
+        padding: "1rem",
+        position: "fixed",
+        left: 0,
+        top: 0,
       }}
     >
-      <div>
-        <div style={{ padding: "1rem", fontWeight: "bold", fontSize: "1.2rem", background: "#0b5ed7" }}>
-          Assistenku
-        </div>
-        <nav style={{ marginTop: "1rem" }}>
-          {menuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "10px 15px",
-                textDecoration: "none",
-                color: "white",
-                background: location.pathname === item.path ? "#0b5ed7" : "transparent",
-                transition: "0.2s",
-              }}
-            >
-              {item.icon}
-              <span style={{ marginLeft: "10px" }}>{item.label}</span>
-            </Link>
+      <h2 style={{ fontSize: "1.5rem", fontWeight: "700", marginBottom: "2rem" }}>
+        Assistenku Admin
+      </h2>
+
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        {menu
+          .filter((m) => m.allow.includes(role))
+          .map((item) => (
+            <li key={item.to} style={{ marginBottom: "1rem" }}>
+              <NavLink
+                to={item.to}
+                style={({ isActive }) => ({
+                  display: "block",
+                  padding: "10px 14px",
+                  borderRadius: "8px",
+                  background: isActive ? "rgba(255,255,255,0.3)" : "transparent",
+                  color: "white",
+                  textDecoration: "none",
+                  fontWeight: 600,
+                })}
+              >
+                {item.label}
+              </NavLink>
+            </li>
           ))}
-        </nav>
-      </div>
+      </ul>
     </div>
   );
 }

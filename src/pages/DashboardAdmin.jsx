@@ -1,14 +1,8 @@
-import AdminLayout from "../layout/AdminLayout";
-import { auth } from "../firebase";
-
-export default function Dashboard() {
-  const logout = async () => await auth.signOut();
-
+// src/pages/DashboardAdmin.jsx
+export default function DashboardAdmin() {
   return (
-    <AdminLayout onLogout={logout}>
-      <h1>Dashboard Realtime Assistenku-Core</h1>
-
-      {/* … konten dashboard kamu … */}
-    </AdminLayout>
+    <div>
+      <h1 className="text-2xl font-bold">Dashboard Realtime Assistenku-Core</h1>
+    </div>
   );
 }

@@ -1,25 +1,30 @@
 // src/pages/DashboardAdmin.jsx
 import React from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
+import { useNavigate } from "react-router-dom";
 import useRealtimeData from "../hooks/useRealtimeData";
 import Navbar from "../components/Navbar";
-import { auth } from "../firebase";
-import { signOut } from "firebase/auth";
 import { buatPesanan } from "../core/orderFlow";
 
 export default function DashboardAdmin() {
+  const navigate = useNavigate();
   const { mitra, customer, orders, transactions } = useRealtimeData();
 
-  // 🔹 Fungsi Logout
+  // ============================
+  // 🔹 FUNGSI LOGOUT
+  // ============================
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      window.location.href = "/login"; // redirect setelah logout
+      navigate("/login"); // arahkan ke halaman login admin
     } catch (err) {
-      alert("Gagal logout: " + err.message);
+      console.error("Logout error:", err);
+      alert("Gagal logout!");
     }
   };
 
-  // 🔹 Simulasi Order Baru
+  // 🔹 Simulasi Pesanan
   const handleSimulasiOrder = async () => {
     try {
       await buatPesanan("cust001", "mitra001", {
@@ -30,37 +35,30 @@ export default function DashboardAdmin() {
         isCancel: false,
         baseRate: 150000,
       });
-      alert("✅ Simulasi pesanan baru berhasil!");
+      alert("✓ Simulasi Order berhasil tersimpan!");
     } catch (error) {
-      alert("❌ Gagal membuat simulasi: " + error.message);
+      alert("✗ Error: " + error.message);
     }
   };
 
   return (
     <div className="bg-gray-50 min-h-screen">
 
-      {/* Navbar */}
+      {/* ⬅️ Kirim fungsi logout ke Navbar */}
       <Navbar onLogout={handleLogout} />
 
       <div className="p-6">
         <h1 className="text-2xl font-bold text-blue-700 mb-2">
           Dashboard Realtime Assistenku-Core
         </h1>
-        <p className="text-gray-500 mb-6">
-          Memantau data otomatis dari aplikasi Mitra & Customer.
-        </p>
 
-        {/* Tombol Simulasi Pesanan */}
-        <div className="mb-6">
-          <button
-            onClick={handleSimulasiOrder}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition"
-          >
-            🔹 Simulasi Pesanan Baru
-          </button>
-        </div>
+        <button
+          onClick={handleSimulasiOrder}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow mb-6"
+        >
+          🔹 Simulasi Pesanan Baru
+        </button>
 
-        {/* Statistik */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <StatCard title="Mitra Aktif" value={mitra.length} />
           <StatCard title="Customer Aktif" value={customer.length} />
@@ -68,19 +66,17 @@ export default function DashboardAdmin() {
           <StatCard title="Transaksi Hari Ini" value={transactions.length} />
         </div>
 
-        {/* Data Realtime */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <DataCard title="📍 Mitra Aktif" data={mitra} />
           <DataCard title="👤 Customer Aktif" data={customer} />
-          <DataCard title="🧾 Pesanan Berlangsung" data={orders} />
-          <DataCard title="💰 Transaksi Terbaru" data={transactions} />
+          <DataCard title="🧾 Pesanan" data={orders} />
+          <DataCard title="💰 Transaksi" data={transactions} />
         </div>
       </div>
     </div>
   );
 }
 
-/* 🔹 Kartu Statistik */
 function StatCard({ title, value }) {
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm text-center">
@@ -90,7 +86,6 @@ function StatCard({ title, value }) {
   );
 }
 
-/* 🔹 Kartu Data Detail */
 function DataCard({ title, data }) {
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm">

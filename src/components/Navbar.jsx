@@ -1,16 +1,15 @@
-// src/components/Navbar.jsx
 export default function Navbar({ onLogout }) {
   return (
     <nav
       style={{
         background: "white",
         padding: "1rem",
-        borderBottom: "1px solid #e5e5e5",
+        borderBottom: "1px solid #ddd",
         display: "flex",
         justifyContent: "flex-end",
         position: "sticky",
         top: 0,
-        zIndex: 100,
+        zIndex: 10,
       }}
     >
       <button
@@ -18,11 +17,10 @@ export default function Navbar({ onLogout }) {
         style={{
           background: "#dc3545",
           color: "white",
-          padding: "8px 14px",
           border: "none",
-          borderRadius: "6px",
+          borderRadius: "8px",
+          padding: "8px 14px",
           cursor: "pointer",
-          fontWeight: "600",
         }}
       >
         Logout

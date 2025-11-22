@@ -31,7 +31,6 @@ export default function App() {
 
       setUser(u);
 
-      // Cek role dari Firestore
       const docRef = doc(db, "core_users", u.uid);
       const snap = await getDoc(docRef);
 
@@ -59,7 +58,10 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         {/* LOGIN */}
-        <Route path="/" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
+        <Route
+          path="/"
+          element={!user ? <Login /> : <Navigate to="/dashboard" />}
+        />
 
         {/* DASHBOARD */}
         <Route

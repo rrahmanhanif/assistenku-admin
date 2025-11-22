@@ -1,85 +1,14 @@
-// src/App.jsx
-import { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-
-import { auth, db } from "./firebase";
-
-import Login from "./pages/Login";
-import DashboardAdmin from "./pages/DashboardAdmin";
 import DashboardFinanceEnterprise from "./pages/DashboardFinanceEnterprise";
-import AdminLayout from "./layout/AdminLayout";
+import Reports from "./pages/Reports";
+import Transactions from "./pages/Transactions";
+import Wallet from "./pages/Wallet";
 
-export default function App() {
-  const [user, setUser] = useState(null);
-  const [role, setRole] = useState(null);
-  const [loading, setLoading] = useState(true);
+// ...
 
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-
-      if (u) {
-        const ref = doc(db, "core_users", u.uid);
-        const snap = await getDoc(ref);
-
-        if (snap.exists()) {
-          setRole(snap.data().role);
-        } else {
-          setRole("viewer");
-        }
-      } else {
-        setRole(null);
-      }
-
-      setLoading(false);
-    });
-
-    return () => unsub();
-  }, []);
-
-  const logoutNow = async () => {
-    await signOut(auth);
-    setUser(null);
-    setRole(null);
-  };
-
-  if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
-
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
-
-        <Route
-          path="/dashboard"
-          element={
-            user ? (
-              <AdminLayout onLogout={logoutNow} role={role}>
-                <DashboardAdmin role={role} />
-              </AdminLayout>
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-
-        <Route
-          path="/finance"
-          element={
-            user ? (
-              <AdminLayout onLogout={logoutNow} role={role}>
-                <DashboardFinanceEnterprise role={role} />
-              </AdminLayout>
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
+<Routes>
+  <Route path="/dashboard" element={<Dashboard />} />
+  <Route path="/finance" element={<DashboardFinanceEnterprise />} />
+  <Route path="/reports" element={<Reports />} />
+  <Route path="/transactions" element={<Transactions />} />
+  <Route path="/wallet" element={<Wallet />} />
+</Routes>

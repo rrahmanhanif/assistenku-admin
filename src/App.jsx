@@ -1,4 +1,3 @@
-// src/App.jsx
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -12,18 +11,30 @@ import AdminLayout from "./layout/AdminLayout";
 
 export default function App() {
   const [user, setUser] = useState(null);
-  const [role, setRole] = useState(null);
+  const [role, setRole] = useState("viewer"); // default aman
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-
       if (u) {
-        const snap = await getDoc(doc(db, "core_users", u.uid));
-        setRole(snap.exists() ? snap.data().role : "viewer");
+        setUser(u);
+
+        try {
+          const snap = await getDoc(doc(db, "core_users", u.uid));
+
+          if (snap.exists()) {
+            setRole(snap.data().role || "viewer");
+          } else {
+            // jika dokumen role tidak ada → pakai superadmin sementara
+            setRole("superadmin");
+          }
+        } catch (err) {
+          console.error("ROLE ERROR:", err);
+          setRole("viewer");
+        }
       } else {
-        setRole(null);
+        setUser(null);
+        setRole("viewer");
       }
 
       setLoading(false);
@@ -35,7 +46,7 @@ export default function App() {
   const logoutNow = async () => {
     await signOut(auth);
     setUser(null);
-    setRole(null);
+    setRole("viewer");
   };
 
   if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
@@ -43,11 +54,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        <Route
-          path="/"
-          element={!user ? <Login /> : <Navigate to="/dashboard" />}
-        />
+        <Route path="/" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
 
         <Route
           path="/dashboard"
@@ -76,7 +83,6 @@ export default function App() {
         />
 
         <Route path="*" element={<Navigate to="/" />} />
-
       </Routes>
     </BrowserRouter>
   );

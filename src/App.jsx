@@ -1,47 +1,36 @@
 // src/App.jsx
-import React, { useEffect, useState } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-
+import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth, db } from "./firebase";
 import { doc, getDoc } from "firebase/firestore";
 
-// Layout
-import SidebarLayout from "./components/SidebarLayout";
+import { auth, db } from "./firebase";
 
-// Pages
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import DashboardAdmin from "./pages/DashboardAdmin";
 import DashboardFinanceEnterprise from "./pages/DashboardFinanceEnterprise";
-import Reports from "./pages/Reports";
-import Transactions from "./pages/Transactions";
-import Wallet from "./pages/Wallet";
+import AdminLayout from "./layout/AdminLayout";
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        setCurrentUser(null);
-        setRole(null);
-        setLoading(false);
-        return;
-      }
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      setUser(u);
 
-      const snap = await getDoc(doc(db, "core_users", user.uid));
-      if (snap.exists()) {
-        setCurrentUser(user);
-        setRole(snap.data().role || "viewer");
+      if (u) {
+        const ref = doc(db, "core_users", u.uid);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          setRole(snap.data().role);
+        } else {
+          setRole("viewer");
+        }
       } else {
-        await signOut(auth);
+        setRole(null);
       }
 
       setLoading(false);
@@ -52,80 +41,45 @@ export default function App() {
 
   const logoutNow = async () => {
     await signOut(auth);
-    setCurrentUser(null);
+    setUser(null);
     setRole(null);
   };
 
-  if (loading) return <div style={{ padding: 30 }}>Memuat...</div>;
-
-  function ProtectedRoute({ children, allow }) {
-    if (!currentUser) return <Navigate to="/" replace />;
-    if (!allow.includes(role)) return <Navigate to="/dashboard" replace />;
-    return children;
-  }
+  if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
 
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
 
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute allow={["superadmin", "admin", "viewer"]}>
-              <SidebarLayout onLogout={logoutNow}>
-                <Dashboard />
-              </SidebarLayout>
-            </ProtectedRoute>
+            user ? (
+              <AdminLayout onLogout={logoutNow} role={role}>
+                <DashboardAdmin role={role} />
+              </AdminLayout>
+            ) : (
+              <Navigate to="/" />
+            )
           }
         />
 
         <Route
           path="/finance"
           element={
-            <ProtectedRoute allow={["superadmin"]}>
-              <SidebarLayout onLogout={logoutNow}>
-                <DashboardFinanceEnterprise />
-              </SidebarLayout>
-            </ProtectedRoute>
+            user ? (
+              <AdminLayout onLogout={logoutNow} role={role}>
+                <DashboardFinanceEnterprise role={role} />
+              </AdminLayout>
+            ) : (
+              <Navigate to="/" />
+            )
           }
         />
 
-        <Route
-          path="/reports"
-          element={
-            <ProtectedRoute allow={["superadmin", "admin"]}>
-              <SidebarLayout onLogout={logoutNow}>
-                <Reports />
-              </SidebarLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/transactions"
-          element={
-            <ProtectedRoute allow={["superadmin", "admin"]}>
-              <SidebarLayout onLogout={logoutNow}>
-                <Transactions />
-              </SidebarLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/wallet"
-          element={
-            <ProtectedRoute allow={["superadmin", "admin"]}>
-              <SidebarLayout onLogout={logoutNow}>
-                <Wallet />
-              </SidebarLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }

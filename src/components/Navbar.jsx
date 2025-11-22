@@ -1,15 +1,32 @@
-import { signOut } from "firebase/auth";
-import { auth } from "../firebase";
-
-export default function Navbar() {
+// src/components/Navbar.jsx
+export default function Navbar({ onLogout }) {
   return (
-    <header className="w-full p-4 bg-white shadow flex justify-end">
+    <nav
+      style={{
+        background: "white",
+        padding: "1rem",
+        borderBottom: "1px solid #e5e5e5",
+        display: "flex",
+        justifyContent: "flex-end",
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
+      }}
+    >
       <button
-        onClick={() => signOut(auth)}
-        className="px-4 py-2 bg-red-500 text-white rounded"
+        onClick={onLogout}
+        style={{
+          background: "#dc3545",
+          color: "white",
+          padding: "8px 14px",
+          border: "none",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontWeight: "600",
+        }}
       >
         Logout
       </button>
-    </header>
+    </nav>
   );
 }

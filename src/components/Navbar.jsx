@@ -17,12 +17,10 @@ export default function Navbar({ onLogout }) {
         boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
       }}
     >
-      {/* Judul Admin */}
       <div style={{ fontSize: "1.3rem", fontWeight: "700" }}>
         Assistenku-Core Admin
       </div>
 
-      {/* Tombol Logout */}
       <button
         onClick={onLogout}
         style={{
@@ -36,8 +34,6 @@ export default function Navbar({ onLogout }) {
           boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
           transition: "0.2s",
         }}
-        onMouseEnter={(e) => (e.target.style.transform = "scale(0.96)")}
-        onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
       >
         Logout
       </button>

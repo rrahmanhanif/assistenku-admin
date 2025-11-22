@@ -1,14 +1,32 @@
-import DashboardFinanceEnterprise from "./pages/DashboardFinanceEnterprise";
-import Reports from "./pages/Reports";
-import Transactions from "./pages/Transactions";
-import Wallet from "./pages/Wallet";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 
-// ...
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 
-<Routes>
-  <Route path="/dashboard" element={<Dashboard />} />
-  <Route path="/finance" element={<DashboardFinanceEnterprise />} />
-  <Route path="/reports" element={<Reports />} />
-  <Route path="/transactions" element={<Transactions />} />
-  <Route path="/wallet" element={<Wallet />} />
-</Routes>
+import ProtectedRoute from "./components/ProtectedRoute";
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="*" element={<Login />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
+}
+
+export default App;

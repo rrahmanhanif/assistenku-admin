@@ -1,95 +1,166 @@
 // src/pages/DashboardAdmin.jsx
 import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 
 export default function DashboardAdmin({ role }) {
-  const [stats, setStats] = useState({
-    totalOrders: 0,
-    totalMitra: 0,
-    totalCustomer: 0,
-    revenue: 0,
-  });
+  const [totalMitra, setTotalMitra] = useState(0);
+  const [activeMitra, setActiveMitra] = useState(0);
+  const [todayOrders, setTodayOrders] = useState(0);
+  const [todayRevenue, setTodayRevenue] = useState(0);
+  const [latestOrders, setLatestOrders] = useState([]);
 
+  // ================================
+  // LOAD DASHBOARD DATA
+  // ================================
   useEffect(() => {
-    loadStats();
+    loadMitra();
+    loadOrdersToday();
+    loadLatestOrders();
   }, []);
 
-  const loadStats = async () => {
-    try {
-      const ordersSnap = await getDocs(collection(db, "orders"));
-      const mitraSnap = await getDocs(collection(db, "mitra"));
-      const customerSnap = await getDocs(collection(db, "customers"));
+  // 🔵 Mitra Data
+  const loadMitra = async () => {
+    const col = collection(db, "mitra");
 
-      let totalRevenue = 0;
-      ordersSnap.forEach((o) => {
-        totalRevenue += o.data().total_bayar || 0;
-      });
+    const all = await getDocs(col);
+    setTotalMitra(all.size);
 
-      setStats({
-        totalOrders: ordersSnap.size,
-        totalMitra: mitraSnap.size,
-        totalCustomer: customerSnap.size,
-        revenue: totalRevenue,
-      });
-    } catch (e) {
-      console.error("Gagal load statistik:", e);
-    }
+    const activeQuery = query(col, where("on_duty", "==", true));
+    const active = await getDocs(activeQuery);
+    setActiveMitra(active.size);
+  };
+
+  // 🟢 Order hari ini + revenue
+  const loadOrdersToday = async () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const col = collection(db, "orders");
+    const qToday = query(col, where("created_at", ">=", today));
+
+    const snap = await getDocs(qToday);
+
+    let revenue = 0;
+    snap.forEach((d) => {
+      revenue += d.data().biaya_total || 0;
+    });
+
+    setTodayOrders(snap.size);
+    setTodayRevenue(revenue);
+  };
+
+  // 🟣 5 Order Terbaru
+  const loadLatestOrders = async () => {
+    const snap = await getDocs(collection(db, "orders"));
+
+    const arr = [];
+    snap.forEach((d) => arr.push({ id: d.id, ...d.data() }));
+
+    arr.sort((a, b) => b.created_at - a.created_at);
+
+    setLatestOrders(arr.slice(0, 5));
   };
 
   return (
-    <div>
-      <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
+    <div className="space-y-6">
+
+      {/* ================= HEADER ================= */}
+      <h1 className="text-2xl font-bold text-blue-700">
         Dashboard Admin
       </h1>
+      <p className="text-gray-600">Selamat datang kembali administrator.</p>
 
-      {/* GRID STATISTICS */}
+      {/* ================= TOP STATS ================= */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        
-        <StatBox 
-          label="Total Pesanan"
-          value={stats.totalOrders}
-          icon="📦"
+
+        <StatBox
+          title="Total Mitra"
+          value={totalMitra}
+          color="bg-blue-600"
         />
 
         <StatBox
-          label="Total Mitra Terdaftar"
-          value={stats.totalMitra}
-          icon="🧑‍🔧"
+          title="Mitra Aktif"
+          value={activeMitra}
+          color="bg-green-600"
         />
 
         <StatBox
-          label="Total Customer"
-          value={stats.totalCustomer}
-          icon="👥"
+          title="Order Hari Ini"
+          value={todayOrders}
+          color="bg-indigo-600"
         />
 
         <StatBox
-          label="Pendapatan (Gross)"
-          value={"Rp " + stats.revenue.toLocaleString("id-ID")}
-          icon="💰"
+          title="Pendapatan Hari Ini"
+          value={`Rp ${todayRevenue.toLocaleString()}`}
+          color="bg-amber-600"
         />
+
       </div>
 
-      {/* ROLE INFORMATION */}
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <p className="text-blue-800 font-medium">
-          Anda login sebagai: <b>{role.toUpperCase()}</b>
-        </p>
+      {/* ================= TABLE ================= */}
+      <div className="bg-white shadow rounded-lg p-5">
+        <h2 className="text-xl font-semibold mb-4">Order Terbaru</h2>
+
+        <div className="overflow-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b bg-gray-50">
+                <th className="p-2">ID</th>
+                <th className="p-2">Customer</th>
+                <th className="p-2">Layanan</th>
+                <th className="p-2">Biaya</th>
+                <th className="p-2">Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {latestOrders.map((o) => (
+                <tr key={o.id} className="border-b">
+                  <td className="p-2">{o.id}</td>
+                  <td className="p-2">{o.customer_nama || "-"}</td>
+                  <td className="p-2">{o.layanan}</td>
+                  <td className="p-2">Rp {o.biaya_total?.toLocaleString()}</td>
+                  <td className="p-2">
+                    <span
+                      className={`px-2 py-1 rounded text-white ${
+                        o.status === "selesai"
+                          ? "bg-green-600"
+                          : o.status === "diterima"
+                          ? "bg-blue-600"
+                          : "bg-gray-500"
+                      }`}
+                    >
+                      {o.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
       </div>
+
     </div>
   );
 }
 
-/* COMPONENT */
-function StatBox({ label, value, icon }) {
+/* ===============================
+   SMALL DASHBOARD BOX COMPONENT
+================================= */
+function StatBox({ title, value, color }) {
   return (
-    <div className="bg-white shadow rounded-lg p-5 border flex items-center gap-4">
-      <div className="text-4xl">{icon}</div>
-      <div>
-        <p className="text-gray-600 text-sm">{label}</p>
-        <p className="text-xl font-bold text-gray-800">{value}</p>
-      </div>
+    <div className={`p-4 text-white rounded-lg shadow ${color}`}>
+      <p className="text-sm opacity-80">{title}</p>
+      <h3 className="text-2xl font-bold mt-1">{value}</h3>
     </div>
   );
 }

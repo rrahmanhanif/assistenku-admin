@@ -1,79 +1,70 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+// src/components/AdminLayout.jsx
+import { NavLink } from "react-router-dom";
 
 export default function AdminLayout({ children, onLogout }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const location = useLocation();
-
-  const menu = [
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Finance", path: "/finance" },
-    { name: "Reports", path: "/reports" },
-    { name: "Transactions", path: "/transactions" },
-    { name: "Wallet", path: "/wallet" },
-  ];
-
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      
-      {/* SIDEBAR LEFT */}
-      <aside
-        className={`bg-white shadow-md transition-all duration-300 ${
-          sidebarOpen ? "w-60" : "w-16"
-        }`}
-      >
-        {/* Logo */}
-        <div className="p-4 font-bold text-blue-600 text-xl">
-          {sidebarOpen ? "Assistenku Admin" : "AK"}
+    <div className="w-full h-screen flex bg-gray-100">
+
+      {/* SIDEBAR */}
+      <aside className="w-64 bg-white shadow-lg border-r hidden md:flex flex-col">
+        <div className="p-5 border-b">
+          <h1 className="text-xl font-bold text-blue-600">Assistenku Admin</h1>
         </div>
 
-        {/* Menu */}
-        <nav className="mt-4">
-          {menu.map((item) => {
-            const active = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`block px-4 py-3 text-sm transition
-                  ${active ? "bg-blue-100 text-blue-600" : "text-gray-700"}
-                  hover:bg-blue-50`}
-              >
-                {sidebarOpen ? item.name : item.name[0]}
-              </Link>
-            );
-          })}
+        {/* MENU */}
+        <nav className="flex-1 p-4 space-y-2">
+          <MenuItem to="/dashboard" label="Dashboard" />
+          <MenuItem to="/finance" label="Finance" />
+          <MenuItem to="/reports" label="Reports" />
+          <MenuItem to="/transactions" label="Transactions" />
+          <MenuItem to="/wallet" label="Wallet" />
         </nav>
 
-        {/* Logout */}
-        <button
-          onClick={onLogout}
-          className="absolute bottom-4 left-4 text-red-600 hover:underline"
-        >
-          {sidebarOpen ? "Logout" : "⏻"}
-        </button>
+        {/* LOGOUT */}
+        <div className="p-4 border-t">
+          <button
+            onClick={onLogout}
+            className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700"
+          >
+            Logout
+          </button>
+        </div>
       </aside>
 
-      {/* CONTENT RIGHT */}
-      <div className="flex-1 flex flex-col">
-        
+      {/* MAIN CONTENT */}
+      <main className="flex-1 overflow-y-auto">
         {/* TOPBAR */}
-        <header className="bg-white shadow p-4 flex justify-between items-center">
+        <div className="w-full bg-white shadow flex items-center justify-between px-4 py-3 border-b md:hidden">
+          <h2 className="text-lg font-semibold">Assistenku Admin</h2>
           <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-gray-600 hover:text-black"
+            onClick={onLogout}
+            className="px-3 py-1 bg-red-600 text-white rounded-full text-sm"
           >
-            ☰
+            Logout
           </button>
+        </div>
 
-          <p className="text-gray-600 text-sm">
-            Admin Panel — Versi Profesional
-          </p>
-        </header>
-
-        {/* MAIN CONTENT */}
-        <main className="p-6">{children}</main>
-      </div>
+        {/* PAGE CONTENT */}
+        <div className="p-5">{children}</div>
+      </main>
     </div>
+  );
+}
+
+/* COMPONENT: MENU ITEM */
+function MenuItem({ to, label }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `block px-4 py-2 rounded-lg font-medium ${
+          isActive
+            ? "bg-blue-600 text-white shadow"
+            : "text-gray-700 hover:bg-gray-100"
+        }`
+      }
+    >
+      {label}
+    </NavLink>
   );
 }

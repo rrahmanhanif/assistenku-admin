@@ -22,9 +22,9 @@ export default function App() {
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ==============================
-  // 🔐 Authentication & Role Load
-  // ==============================
+  // ========================================================
+  // AUTH + ROLE LOADER
+  // ========================================================
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) {
@@ -36,7 +36,6 @@ export default function App() {
 
       setUser(u);
 
-      // Load role dari Firestore
       const docRef = doc(db, "core_users", u.uid);
       const snap = await getDoc(docRef);
 
@@ -60,9 +59,9 @@ export default function App() {
 
   if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
 
-  // ==============================
-  // 🔒 Protected Route Wrapper
-  // ==============================
+  // ========================================================
+  // PROTECTED ROUTE
+  // ========================================================
   const RequireAuth = ({ children }) => {
     if (!user) return <Navigate to="/" replace />;
     return children;
@@ -78,7 +77,7 @@ export default function App() {
           element={!user ? <Login /> : <Navigate to="/dashboard" />}
         />
 
-        {/* DASHBOARD */}
+        {/* DASHBOARD ADMIN */}
         <Route
           path="/dashboard"
           element={

@@ -1,11 +1,13 @@
 // src/App.jsx
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 import { auth, db } from "./firebase";
 
+// PAGES
 import Login from "./pages/Login";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import DashboardFinanceEnterprise from "./pages/DashboardFinanceEnterprise";
@@ -13,6 +15,7 @@ import Reports from "./pages/Reports";
 import Transactions from "./pages/Transactions";
 import Wallet from "./pages/Wallet";
 
+// LAYOUT
 import AdminLayout from "./layout/AdminLayout";
 
 export default function App() {
@@ -20,6 +23,9 @@ export default function App() {
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ============================
+  // 🔐 CEK AUTH + ROLE ADMIN
+  // ============================
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) {
@@ -31,12 +37,14 @@ export default function App() {
 
       setUser(u);
 
+      // Ambil role dari Firestore
       const docRef = doc(db, "core_users", u.uid);
       const snap = await getDoc(docRef);
 
       if (snap.exists()) {
         setRole(snap.data().role || "viewer");
       } else {
+        // Default role = viewer (paling aman)
         setRole("viewer");
       }
 
@@ -46,8 +54,10 @@ export default function App() {
     return () => unsub();
   }, []);
 
+  // Saat loading
   if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
 
+  // Logout function
   const logoutNow = async () => {
     await signOut(auth);
     setUser(null);
@@ -57,13 +67,18 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* LOGIN */}
+
+        {/* ============================
+            LOGIN
+        ============================ */}
         <Route
           path="/"
           element={!user ? <Login /> : <Navigate to="/dashboard" />}
         />
 
-        {/* DASHBOARD */}
+        {/* ============================
+            DASHBOARD UTAMA
+        ============================ */}
         <Route
           path="/dashboard"
           element={
@@ -77,7 +92,10 @@ export default function App() {
           }
         />
 
-        {/* FINANCE */}
+        {/* ============================
+            FINANCE DASHBOARD
+            Hanya tampil jika role = finance / admin
+        ============================ */}
         <Route
           path="/finance"
           element={
@@ -91,7 +109,9 @@ export default function App() {
           }
         />
 
-        {/* OTHER MENU */}
+        {/* ============================
+            REPORTS
+        ============================ */}
         <Route
           path="/reports"
           element={
@@ -105,6 +125,9 @@ export default function App() {
           }
         />
 
+        {/* ============================
+            TRANSACTIONS
+        ============================ */}
         <Route
           path="/transactions"
           element={
@@ -118,6 +141,9 @@ export default function App() {
           }
         />
 
+        {/* ============================
+            WALLET INTERNAL SYSTEM
+        ============================ */}
         <Route
           path="/wallet"
           element={
@@ -131,6 +157,7 @@ export default function App() {
           }
         />
 
+        {/* Jika route tidak ditemukan */}
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
     </BrowserRouter>

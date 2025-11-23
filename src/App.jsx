@@ -23,7 +23,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   // ==============================
-  // 🔐 Authentication + Role Loader
+  // 🔐 Authentication & Role Load
   // ==============================
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -36,12 +36,12 @@ export default function App() {
 
       setUser(u);
 
-      // Ambil role dari Firestore → collection: core_users
+      // Load role dari Firestore
       const docRef = doc(db, "core_users", u.uid);
       const snap = await getDoc(docRef);
 
       if (snap.exists()) {
-        setRole(snap.data().role || "viewer"); 
+        setRole(snap.data().role || "viewer");
       } else {
         setRole("viewer");
       }
@@ -61,7 +61,7 @@ export default function App() {
   if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
 
   // ==============================
-  // 🔒 Role Guard
+  // 🔒 Protected Route Wrapper
   // ==============================
   const RequireAuth = ({ children }) => {
     if (!user) return <Navigate to="/" replace />;
@@ -71,13 +71,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+
         {/* LOGIN */}
         <Route
           path="/"
           element={!user ? <Login /> : <Navigate to="/dashboard" />}
         />
 
-        {/* ====== DASHBOARD ADMIN ====== */}
+        {/* DASHBOARD */}
         <Route
           path="/dashboard"
           element={
@@ -89,7 +90,7 @@ export default function App() {
           }
         />
 
-        {/* ====== FINANCE (ROLE: finance / admin) ====== */}
+        {/* FINANCE */}
         <Route
           path="/finance"
           element={
@@ -101,7 +102,7 @@ export default function App() {
           }
         />
 
-        {/* ====== REPORTS ====== */}
+        {/* REPORTS */}
         <Route
           path="/reports"
           element={
@@ -113,7 +114,7 @@ export default function App() {
           }
         />
 
-        {/* ====== TRANSACTIONS ====== */}
+        {/* TRANSACTIONS */}
         <Route
           path="/transactions"
           element={
@@ -125,7 +126,7 @@ export default function App() {
           }
         />
 
-        {/* ====== WALLET ====== */}
+        {/* WALLET */}
         <Route
           path="/wallet"
           element={
@@ -137,7 +138,7 @@ export default function App() {
           }
         />
 
-        {/* DEFAULT REDIRECT */}
+        {/* DEFAULT */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>

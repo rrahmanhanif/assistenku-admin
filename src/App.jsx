@@ -1,13 +1,12 @@
 // src/App.jsx
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 import { auth, db } from "./firebase";
 
-// PAGES
+// Pages
 import Login from "./pages/Login";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import DashboardFinanceEnterprise from "./pages/DashboardFinanceEnterprise";
@@ -15,17 +14,17 @@ import Reports from "./pages/Reports";
 import Transactions from "./pages/Transactions";
 import Wallet from "./pages/Wallet";
 
-// LAYOUT
-import AdminLayout from "./layout/AdminLayout";
+// Layout
+import AdminLayout from "./components/AdminLayout";
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ============================
-  // 🔐 CEK AUTH + ROLE ADMIN
-  // ============================
+  // ==============================
+  // 🔐 Authentication + Role Loader
+  // ==============================
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) {
@@ -37,14 +36,13 @@ export default function App() {
 
       setUser(u);
 
-      // Ambil role dari Firestore
+      // Ambil role dari Firestore → collection: core_users
       const docRef = doc(db, "core_users", u.uid);
       const snap = await getDoc(docRef);
 
       if (snap.exists()) {
-        setRole(snap.data().role || "viewer");
+        setRole(snap.data().role || "viewer"); 
       } else {
-        // Default role = viewer (paling aman)
         setRole("viewer");
       }
 
@@ -54,111 +52,93 @@ export default function App() {
     return () => unsub();
   }, []);
 
-  // Saat loading
-  if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
-
-  // Logout function
   const logoutNow = async () => {
     await signOut(auth);
     setUser(null);
     setRole(null);
   };
 
+  if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
+
+  // ==============================
+  // 🔒 Role Guard
+  // ==============================
+  const RequireAuth = ({ children }) => {
+    if (!user) return <Navigate to="/" replace />;
+    return children;
+  };
+
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* ============================
-            LOGIN
-        ============================ */}
+        {/* LOGIN */}
         <Route
           path="/"
           element={!user ? <Login /> : <Navigate to="/dashboard" />}
         />
 
-        {/* ============================
-            DASHBOARD UTAMA
-        ============================ */}
+        {/* ====== DASHBOARD ADMIN ====== */}
         <Route
           path="/dashboard"
           element={
-            user ? (
+            <RequireAuth>
               <AdminLayout onLogout={logoutNow}>
                 <DashboardAdmin role={role} />
               </AdminLayout>
-            ) : (
-              <Navigate to="/" />
-            )
+            </RequireAuth>
           }
         />
 
-        {/* ============================
-            FINANCE DASHBOARD
-            Hanya tampil jika role = finance / admin
-        ============================ */}
+        {/* ====== FINANCE (ROLE: finance / admin) ====== */}
         <Route
           path="/finance"
           element={
-            user ? (
+            <RequireAuth>
               <AdminLayout onLogout={logoutNow}>
                 <DashboardFinanceEnterprise role={role} />
               </AdminLayout>
-            ) : (
-              <Navigate to="/" />
-            )
+            </RequireAuth>
           }
         />
 
-        {/* ============================
-            REPORTS
-        ============================ */}
+        {/* ====== REPORTS ====== */}
         <Route
           path="/reports"
           element={
-            user ? (
+            <RequireAuth>
               <AdminLayout onLogout={logoutNow}>
                 <Reports />
               </AdminLayout>
-            ) : (
-              <Navigate to="/" />
-            )
+            </RequireAuth>
           }
         />
 
-        {/* ============================
-            TRANSACTIONS
-        ============================ */}
+        {/* ====== TRANSACTIONS ====== */}
         <Route
           path="/transactions"
           element={
-            user ? (
+            <RequireAuth>
               <AdminLayout onLogout={logoutNow}>
                 <Transactions />
               </AdminLayout>
-            ) : (
-              <Navigate to="/" />
-            )
+            </RequireAuth>
           }
         />
 
-        {/* ============================
-            WALLET INTERNAL SYSTEM
-        ============================ */}
+        {/* ====== WALLET ====== */}
         <Route
           path="/wallet"
           element={
-            user ? (
+            <RequireAuth>
               <AdminLayout onLogout={logoutNow}>
                 <Wallet />
               </AdminLayout>
-            ) : (
-              <Navigate to="/" />
-            )
+            </RequireAuth>
           }
         />
 
-        {/* Jika route tidak ditemukan */}
-        <Route path="*" element={<Navigate to="/dashboard" />} />
+        {/* DEFAULT REDIRECT */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );

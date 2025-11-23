@@ -1,19 +1,19 @@
-// src/components/AdminLayout.jsx
 import Sidebar from "./Sidebar";
-import Navbar from "./Navbar";
+import Topbar from "./Topbar";
 
 export default function AdminLayout({ children }) {
   return (
-    <div className="flex">
+    <div className="flex w-full h-screen bg-gray-100">
+      {/* SIDEBAR */}
       <Sidebar />
 
-      <main className="flex-1 ml-64 bg-gray-50 min-h-screen">
-        <Navbar />
-
-        <div className="p-6">
+      {/* MAIN AREA */}
+      <div className="flex-1 flex flex-col">
+        <Topbar />
+        <div className="p-6 overflow-auto">
           {children}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

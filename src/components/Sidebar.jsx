@@ -1,30 +1,35 @@
-// src/components/Sidebar.jsx
+import { NavLink } from "react-router-dom";
+
 export default function Sidebar() {
   return (
-    <aside className="w-64 h-screen fixed left-0 top-0 bg-white shadow-md p-4">
-      <h2 className="text-xl font-bold text-blue-600 mb-4">Assistenku-Core</h2>
+    <div className="w-64 bg-white shadow-md h-full fixed left-0 top-0">
+      <div className="p-4 border-b">
+        <h1 className="text-xl font-bold text-blue-600">
+          Assistenku Admin
+        </h1>
+      </div>
 
-      <nav className="space-y-2">
-        <a href="/dashboard" className="block p-2 rounded hover:bg-blue-100">
-          Dashboard Utama
-        </a>
+      <nav className="mt-4 flex flex-col">
+        <NavLink to="/" className="px-6 py-3 hover:bg-gray-100">
+          Dashboard
+        </NavLink>
 
-        <a href="/finance" className="block p-2 rounded hover:bg-blue-100">
-          💰 Finance Enterprise
-        </a>
+        <NavLink to="/mitra" className="px-6 py-3 hover:bg-gray-100">
+          Data Mitra
+        </NavLink>
 
-        <a href="/reports" className="block p-2 rounded hover:bg-blue-100">
-          📊 Laporan Bulanan
-        </a>
+        <NavLink to="/customer" className="px-6 py-3 hover:bg-gray-100">
+          Data Customer
+        </NavLink>
 
-        <a href="/transactions" className="block p-2 rounded hover:bg-blue-100">
-          🧾 Riwayat Transaksi
-        </a>
+        <NavLink to="/orders" className="px-6 py-3 hover:bg-gray-100">
+          Semua Order
+        </NavLink>
 
-        <a href="/wallet" className="block p-2 rounded hover:bg-blue-100">
-          💼 Dompet Digital
-        </a>
+        <NavLink to="/wallet" className="px-6 py-3 hover:bg-gray-100">
+          Penarikan Saldo
+        </NavLink>
       </nav>
-    </aside>
+    </div>
   );
 }

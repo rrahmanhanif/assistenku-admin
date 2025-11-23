@@ -33,7 +33,8 @@ export default function AdminLayout({ children, onLogout }) {
 
       {/* MAIN CONTENT */}
       <main className="flex-1 overflow-y-auto">
-        {/* TOPBAR */}
+
+        {/* TOPBAR (Mobile) */}
         <div className="w-full bg-white shadow flex items-center justify-between px-4 py-3 border-b md:hidden">
           <h2 className="text-lg font-semibold">Assistenku Admin</h2>
           <button
@@ -51,7 +52,6 @@ export default function AdminLayout({ children, onLogout }) {
   );
 }
 
-/* COMPONENT: MENU ITEM */
 function MenuItem({ to, label }) {
   return (
     <NavLink

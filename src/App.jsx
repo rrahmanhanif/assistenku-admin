@@ -23,7 +23,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   // ========================================================
-  // AUTH + ROLE LOADER
+  // 🔐 AUTH + ROLE LOADER + GLOBAL GATEWAY PREP
   // ========================================================
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -36,6 +36,7 @@ export default function App() {
 
       setUser(u);
 
+      // Load user role
       const docRef = doc(db, "core_users", u.uid);
       const snap = await getDoc(docRef);
 
@@ -51,6 +52,7 @@ export default function App() {
     return () => unsub();
   }, []);
 
+  // Logout
   const logoutNow = async () => {
     await signOut(auth);
     setUser(null);
@@ -60,7 +62,7 @@ export default function App() {
   if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
 
   // ========================================================
-  // PROTECTED ROUTE
+  // 🔒 PROTECTED ROUTE
   // ========================================================
   const RequireAuth = ({ children }) => {
     if (!user) return <Navigate to="/" replace />;

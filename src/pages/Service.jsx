@@ -7,25 +7,33 @@ export default function Services() {
   const [services, setServices] = useState([]);
   const [newService, setNewService] = useState("");
   const [basePrice, setBasePrice] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // ================================
-  // Load all services
-  // ================================
+  // ========================================================
+  // LOAD DATA LAYANAN
+  // ========================================================
   const loadServices = async () => {
     try {
       const snap = await getDocs(collection(db, "core_services"));
-      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const list = snap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       setServices(list);
     } catch (err) {
       console.error("Gagal memuat layanan:", err);
     }
+    setLoading(false);
   };
 
-  // ================================
-  // Add new service
-  // ================================
+  // ========================================================
+  // TAMBAH LAYANAN BARU
+  // ========================================================
   const addService = async () => {
-    if (!newService || !basePrice) return;
+    if (!newService || !basePrice) {
+      alert("Nama layanan & harga dasar wajib diisi");
+      return;
+    }
 
     try {
       await addDoc(collection(db, "core_services"), {
@@ -46,17 +54,16 @@ export default function Services() {
     loadServices();
   }, []);
 
-  // ================================
-  // UI
-  // ================================
+  if (loading) return <p className="p-5">Memuat data layanan...</p>;
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-blue-600 mb-6">
         Manajemen Layanan
       </h1>
 
-      {/* Form Input */}
-      <div className="p-4 bg-white shadow rounded mb-5 flex gap-3 items-center">
+      {/* Input Tambah Layanan */}
+      <div className="p-4 bg-white shadow rounded mb-5 flex gap-3">
         <input
           className="border p-2 rounded w-48"
           placeholder="Nama Layanan"
@@ -79,7 +86,7 @@ export default function Services() {
         </button>
       </div>
 
-      {/* Service List */}
+      {/* List Layanan */}
       <div className="space-y-3">
         {services.map((svc) => (
           <div
@@ -94,7 +101,7 @@ export default function Services() {
             </div>
 
             <button
-              onClick={() => alert("Edit service dibuat di Step 3.15")}
+              onClick={() => alert("Edit layanan akan dibuat pada Step 3.14")}
               className="px-3 py-1 bg-yellow-500 text-white rounded"
             >
               Edit
@@ -104,4 +111,4 @@ export default function Services() {
       </div>
     </div>
   );
-        }
+}

@@ -1,7 +1,7 @@
 // src/pages/DashboardAdmin.jsx
 import { useEffect, useState } from "react";
-import { collection, getCountFromServer, query, where } from "firebase/firestore";
-import { db } from "../firebase";
+import { collection, getCountFromServer, query, where } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+import { db } from "../firebaseConfig.js";
 
 export default function DashboardAdmin({ role }) {
   const [stats, setStats] = useState({
@@ -15,16 +15,10 @@ export default function DashboardAdmin({ role }) {
 
   const loadStats = async () => {
     try {
-      // COUNT CUSTOMER
       const snapCustomer = await getCountFromServer(collection(db, "customer"));
-
-      // COUNT MITRA
       const snapMitra = await getCountFromServer(collection(db, "mitra"));
-
-      // COUNT ORDER TOTAL
       const snapOrderTotal = await getCountFromServer(collection(db, "orders"));
 
-      // COUNT ORDER TODAY
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -58,24 +52,18 @@ export default function DashboardAdmin({ role }) {
 
   return (
     <div className="space-y-6">
-
-      {/* HEADER */}
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Dashboard Admin</h1>
         <p className="text-gray-500">Mode: {role?.toUpperCase()}</p>
       </div>
 
-      {/* GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-
         <BoxStat title="Total Customer" value={stats.customers} color="bg-blue-600" />
         <BoxStat title="Total Mitra" value={stats.mitra} color="bg-green-600" />
         <BoxStat title="Total Order" value={stats.ordersTotal} color="bg-indigo-600" />
         <BoxStat title="Order Hari Ini" value={stats.ordersToday} color="bg-orange-600" />
-
       </div>
 
-      {/* INFORMASI */}
       <div className="mt-10 p-5 bg-white rounded-xl shadow">
         <h2 className="text-xl font-semibold mb-2">Aktivitas Sistem</h2>
         <p className="text-gray-600">
@@ -83,7 +71,6 @@ export default function DashboardAdmin({ role }) {
           dan enterprise logs akan muncul pada versi berikutnya.
         </p>
       </div>
-
     </div>
   );
 }
@@ -96,4 +83,4 @@ function BoxStat({ title, value, color }) {
       <div className={`mt-3 h-2 rounded-full ${color}`} />
     </div>
   );
-}
+      }

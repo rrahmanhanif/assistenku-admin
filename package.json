@@ -1,4 +1,5 @@
 {
+  "main": "src/main-root.jsx"
   "name": "assistenku-core",
   "version": "1.0.0",
   "private": true,

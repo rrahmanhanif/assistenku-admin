@@ -1,11 +1,10 @@
 // src/core/App.jsx
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-// === PATH YANG BENAR (firebase.js berada di src/) ===
-import { auth, db } from "../firebase";
+import { auth, db } from "../firebaseConfig.js";
 
 // Pages
 import Login from "../pages/Login";

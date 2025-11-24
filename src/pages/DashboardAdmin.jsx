@@ -15,16 +15,16 @@ export default function DashboardAdmin({ role }) {
 
   const loadStats = async () => {
     try {
-      // CUSTOMER
+      // COUNT CUSTOMER
       const snapCustomer = await getCountFromServer(collection(db, "customer"));
 
-      // MITRA
+      // COUNT MITRA
       const snapMitra = await getCountFromServer(collection(db, "mitra"));
 
-      // ORDER TOTAL
+      // COUNT ORDER TOTAL
       const snapOrderTotal = await getCountFromServer(collection(db, "orders"));
 
-      // ORDER TODAY
+      // COUNT ORDER TODAY
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -49,17 +49,12 @@ export default function DashboardAdmin({ role }) {
   };
 
   useEffect(() => {
-    loadStats(); // pertama kali
-
-    // auto-refresh 3 detik seperti sistem enterprise
+    loadStats();
     const interval = setInterval(loadStats, 3000);
-
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) {
-    return <p className="p-5">Memuat statistik...</p>;
-  }
+  if (loading) return <p className="p-5">Memuat statistik...</p>;
 
   return (
     <div className="space-y-6">
@@ -70,35 +65,17 @@ export default function DashboardAdmin({ role }) {
         <p className="text-gray-500">Mode: {role?.toUpperCase()}</p>
       </div>
 
-      {/* GRID STATISTIK */}
+      {/* GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
 
-        <BoxStat
-          title="Total Customer"
-          value={stats.customers}
-          color="bg-blue-600"
-        />
+        <BoxStat title="Total Customer" value={stats.customers} color="bg-blue-600" />
+        <BoxStat title="Total Mitra" value={stats.mitra} color="bg-green-600" />
+        <BoxStat title="Total Order" value={stats.ordersTotal} color="bg-indigo-600" />
+        <BoxStat title="Order Hari Ini" value={stats.ordersToday} color="bg-orange-600" />
 
-        <BoxStat
-          title="Total Mitra"
-          value={stats.mitra}
-          color="bg-green-600"
-        />
-
-        <BoxStat
-          title="Total Order"
-          value={stats.ordersTotal}
-          color="bg-indigo-600"
-        />
-
-        <BoxStat
-          title="Order Hari Ini"
-          value={stats.ordersToday}
-          color="bg-orange-600"
-        />
       </div>
 
-      {/* SECTION TAMBAHAN */}
+      {/* INFORMASI */}
       <div className="mt-10 p-5 bg-white rounded-xl shadow">
         <h2 className="text-xl font-semibold mb-2">Aktivitas Sistem</h2>
         <p className="text-gray-600">
@@ -111,14 +88,11 @@ export default function DashboardAdmin({ role }) {
   );
 }
 
-/* COMPONENT CARD */
 function BoxStat({ title, value, color }) {
   return (
     <div className="p-5 rounded-xl shadow bg-white border flex flex-col">
       <p className="text-gray-600 text-sm mb-1">{title}</p>
-
       <p className="text-3xl font-bold text-gray-900">{value}</p>
-
       <div className={`mt-3 h-2 rounded-full ${color}`} />
     </div>
   );

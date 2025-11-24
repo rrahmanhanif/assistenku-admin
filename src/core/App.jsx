@@ -4,64 +4,156 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
-import { auth, db } from "./firebase.js";
+import { auth, db } from "./firebase";
 
 // Pages
 import Login from "./pages/Login";
 import DashboardAdmin from "./pages/DashboardAdmin";
+import DashboardFinanceEnterprise from "./pages/DashboardFinanceEnterprise";
+import Reports from "./pages/Reports";
+import Transactions from "./pages/Transactions";
+import Wallet from "./pages/Wallet";
+import Services from "./pages/Services"; // ← halaman baru
 
-function App() {
+// Layout
+import AdminLayout from "./components/AdminLayout";
+
+export default function App() {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ========================================================
+  // 🔐 AUTH + ROLE LOADER
+  // ========================================================
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        const docRef = doc(db, "users", currentUser.uid);
-        const snapshot = await getDoc(docRef);
-
-        if (snapshot.exists()) {
-          setRole(snapshot.data().role);
-        }
-        setUser(currentUser);
-      } else {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (!u) {
         setUser(null);
         setRole(null);
+        setLoading(false);
+        return;
+      }
+
+      setUser(u);
+
+      // Load role
+      const docRef = doc(db, "core_users", u.uid);
+      const snap = await getDoc(docRef);
+
+      if (snap.exists()) {
+        setRole(snap.data().role || "viewer");
+      } else {
+        setRole("viewer");
       }
 
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => unsub();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  const logoutNow = async () => {
+    await signOut(auth);
+    setUser(null);
+    setRole(null);
+  };
+
+  if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
+
+  // ========================================================
+  // 🔒 PROTECTED ROUTE
+  // ========================================================
+  const RequireAuth = ({ children }) => {
+    if (!user) return <Navigate to="/" replace />;
+    return children;
+  };
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
 
+        {/* LOGIN */}
         <Route
           path="/"
+          element={!user ? <Login /> : <Navigate to="/dashboard" />}
+        />
+
+        {/* DASHBOARD ADMIN */}
+        <Route
+          path="/dashboard"
           element={
-            user ? (
-              role === "admin" ? (
-                <DashboardAdmin />
-              ) : (
-                <Navigate to="/login" />
-              )
-            ) : (
-              <Navigate to="/login" />
-            )
+            <RequireAuth>
+              <AdminLayout onLogout={logoutNow}>
+                <DashboardAdmin role={role} />
+              </AdminLayout>
+            </RequireAuth>
           }
         />
 
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* FINANCE */}
+        <Route
+          path="/finance"
+          element={
+            <RequireAuth>
+              <AdminLayout onLogout={logoutNow}>
+                <DashboardFinanceEnterprise role={role} />
+              </AdminLayout>
+            </RequireAuth>
+          }
+        />
+
+        {/* REPORTS */}
+        <Route
+          path="/reports"
+          element={
+            <RequireAuth>
+              <AdminLayout onLogout={logoutNow}>
+                <Reports />
+              </AdminLayout>
+            </RequireAuth>
+          }
+        />
+
+        {/* TRANSACTIONS */}
+        <Route
+          path="/transactions"
+          element={
+            <RequireAuth>
+              <AdminLayout onLogout={logoutNow}>
+                <Transactions />
+              </AdminLayout>
+            </RequireAuth>
+          }
+        />
+
+        {/* WALLET */}
+        <Route
+          path="/wallet"
+          element={
+            <RequireAuth>
+              <AdminLayout onLogout={logoutNow}>
+                <Wallet />
+              </AdminLayout>
+            </RequireAuth>
+          }
+        />
+
+        {/* SERVICES PAGE */}
+        <Route
+          path="/services"
+          element={
+            <RequireAuth>
+              <AdminLayout onLogout={logoutNow}>
+                <Services />
+              </AdminLayout>
+            </RequireAuth>
+          }
+        />
+
+        {/* DEFAULT */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );
-}
-
-export default App;
+    }

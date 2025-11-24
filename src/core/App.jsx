@@ -1,31 +1,30 @@
-// src/App.jsx
+// src/core/App.jsx
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
+// === PENTING! Path firebase baru ===
 import { auth, db } from "./firebase";
 
 // Pages
-import Login from "./pages/Login";
-import DashboardAdmin from "./pages/DashboardAdmin";
-import DashboardFinanceEnterprise from "./pages/DashboardFinanceEnterprise";
-import Reports from "./pages/Reports";
-import Transactions from "./pages/Transactions";
-import Wallet from "./pages/Wallet";
-import Services from "./pages/Services"; // NEW PAGE
+import Login from "../pages/Login";
+import DashboardAdmin from "../pages/DashboardAdmin";
+import DashboardFinanceEnterprise from "../pages/DashboardFinanceEnterprise";
+import Reports from "../pages/Reports";
+import Transactions from "../pages/Transactions";
+import Wallet from "../pages/Wallet";
+import Services from "../pages/Services";
 
 // Layout
-import AdminLayout from "./components/AdminLayout";
+import AdminLayout from "../components/AdminLayout";
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ======================================================
-  // 🔐 AUTH + ROLE LOADER
-  // ======================================================
+  // AUTH + ROLE LOADER
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) {
@@ -37,15 +36,8 @@ export default function App() {
 
       setUser(u);
 
-      // Load role dari Firestore
-      const docRef = doc(db, "core_users", u.uid);
-      const snap = await getDoc(docRef);
-
-      if (snap.exists()) {
-        setRole(snap.data().role || "viewer");
-      } else {
-        setRole("viewer");
-      }
+      const snap = await getDoc(doc(db, "core_users", u.uid));
+      setRole(snap.exists() ? snap.data().role : "viewer");
 
       setLoading(false);
     });
@@ -53,7 +45,6 @@ export default function App() {
     return () => unsub();
   }, []);
 
-  // Logout
   const logoutNow = async () => {
     await signOut(auth);
     setUser(null);
@@ -62,9 +53,6 @@ export default function App() {
 
   if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
 
-  // ======================================================
-  // 🔒 PROTECTED ROUTE
-  // ======================================================
   const RequireAuth = ({ children }) => {
     if (!user) return <Navigate to="/" replace />;
     return children;
@@ -73,7 +61,6 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-
         {/* LOGIN */}
         <Route
           path="/"
@@ -109,6 +96,55 @@ export default function App() {
           path="/reports"
           element={
             <RequireAuth>
+              <AdminLayout onLogout={logoutNow}>
+                <Reports />
+              </AdminLayout>
+            </RequireAuth>
+          }
+        />
+
+        {/* TRANSACTIONS */}
+        <Route
+          path="/transactions"
+          element={
+            <RequireAuth>
+              <AdminLayout onLogout={logoutNow}>
+                <Transactions />
+              </AdminLayout>
+            </RequireAuth>
+          }
+        />
+
+        {/* WALLET */}
+        <Route
+          path="/wallet"
+          element={
+            <RequireAuth>
+              <AdminLayout onLogout={logoutNow}>
+                <Wallet />
+              </AdminLayout>
+            </RequireAuth>
+          }
+        />
+
+        {/* SERVICES */}
+        <Route
+          path="/services"
+          element={
+            <RequireAuth>
+              <AdminLayout onLogout={logoutNow}>
+                <Services />
+              </AdminLayout>
+            </RequireAuth>
+          }
+        />
+
+        {/* DEFAULT */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}            <RequireAuth>
               <AdminLayout onLogout={logoutNow}>
                 <Reports />
               </AdminLayout>

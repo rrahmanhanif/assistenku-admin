@@ -1,23 +1,19 @@
-// src/core/firebase.js
+// src/firebase.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBSL87qkuwSQU8aXvLuu24nV7jUoX2mOSA",
   authDomain: "assistenku-8ef85.firebaseapp.com",
   projectId: "assistenku-8ef85",
-  storageBucket: "assistenku-8ef85.firebasestorage.app",
-  messagingSenderId: "320243806907",
-  appId: "1:320243806907:web:50ecedb9a20063d7ee2f9e",
-  measurementId: "G-ZKVLZGE552",
+  storageBucket: "assistenku-8ef85.appspot.com",
+  messagingSenderId: "980951423919",
+  appId: "1:980951423919:web:aa92c2e1e40d568b613e74",
+  measurementId: "G-M3KM9X7KJF"
 };
 
-// Init
 const app = initializeApp(firebaseConfig);
 
-// Services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const storage = getStorage(app);

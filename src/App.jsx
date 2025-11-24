@@ -1,4 +1,7 @@
-// src/App.jsx
+/* ============================================
+   src/App.jsx  —  FINAL CLEAN VERSION
+   ============================================ */
+
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -22,9 +25,9 @@ export default function App() {
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ========================================================
-  // 🔐 AUTH + ROLE LOADER + GLOBAL GATEWAY PREP
-  // ========================================================
+  /* ========================================================
+     🔐 AUTH + LOAD ROLE + GLOBAL GATEWAY PREP
+     ======================================================== */
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) {
@@ -36,7 +39,7 @@ export default function App() {
 
       setUser(u);
 
-      // Load user role
+      // load role admin dari Firestore (core_users)
       const docRef = doc(db, "core_users", u.uid);
       const snap = await getDoc(docRef);
 
@@ -52,7 +55,9 @@ export default function App() {
     return () => unsub();
   }, []);
 
-  // Logout
+  /* ========================================================
+     🔐 LOGOUT
+     ======================================================== */
   const logoutNow = async () => {
     await signOut(auth);
     setUser(null);
@@ -61,14 +66,17 @@ export default function App() {
 
   if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
 
-  // ========================================================
-  // 🔒 PROTECTED ROUTE
-  // ========================================================
+  /* ========================================================
+     🔒 PROTECTED ROUTE
+     ======================================================== */
   const RequireAuth = ({ children }) => {
     if (!user) return <Navigate to="/" replace />;
     return children;
   };
 
+  /* ========================================================
+     ROUTING
+     ======================================================== */
   return (
     <BrowserRouter>
       <Routes>

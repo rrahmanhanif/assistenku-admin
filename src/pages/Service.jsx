@@ -1,12 +1,6 @@
 // src/pages/Services.jsx
 import { useState, useEffect } from "react";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../firebase";
 
 export default function Services() {
@@ -15,13 +9,14 @@ export default function Services() {
   const [basePrice, setBasePrice] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // EDIT STATES
-  const [editItem, setEditItem] = useState(null);
+  // For edit modal
+  const [editModal, setEditModal] = useState(false);
   const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
+  const [editId, setEditId] = useState(null);
 
   // ========================================================
-  // LOAD DATA
+  // LOAD SERVICES
   // ========================================================
   const loadServices = async () => {
     try {
@@ -29,16 +24,16 @@ export default function Services() {
       const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       setServices(list);
     } catch (err) {
-      console.error("Load services failed:", err);
+      console.error("Gagal load layanan:", err);
     }
     setLoading(false);
   };
 
   // ========================================================
-  // TAMBAH LAYANAN
+  // ADD NEW SERVICE
   // ========================================================
   const addService = async () => {
-    if (!newService || !basePrice) return alert("Lengkapi data layanan");
+    if (!newService || !basePrice) return alert("Isi semua data!");
 
     try {
       await addDoc(collection(db, "core_services"), {
@@ -51,36 +46,49 @@ export default function Services() {
       setBasePrice("");
       loadServices();
     } catch (err) {
-      console.error("Add service failed:", err);
+      console.error("Gagal menambah layanan:", err);
     }
   };
 
   // ========================================================
-  // BUKA MODAL EDIT
+  // OPEN EDIT MODAL
   // ========================================================
   const openEdit = (svc) => {
-    setEditItem(svc);
+    setEditId(svc.id);
     setEditName(svc.name);
     setEditPrice(svc.base_price);
+    setEditModal(true);
   };
 
   // ========================================================
-  // SIMPAN EDIT
+  // SAVE EDIT SERVICE
   // ========================================================
   const saveEdit = async () => {
-    if (!editName || !editPrice) return alert("Lengkapi data edit layanan.");
-
     try {
-      await updateDoc(doc(db, "core_services", editItem.id), {
+      const ref = doc(db, "core_services", editId);
+      await updateDoc(ref, {
         name: editName,
         base_price: Number(editPrice),
-        updated_at: Date.now(),
       });
 
-      setEditItem(null);
+      setEditModal(false);
       loadServices();
     } catch (err) {
-      console.error("Update failed:", err);
+      console.error("Gagal update layanan:", err);
+    }
+  };
+
+  // ========================================================
+  // DELETE SERVICE
+  // ========================================================
+  const deleteService = async (id) => {
+    if (!confirm("Hapus layanan ini?")) return;
+
+    try {
+      await deleteDoc(doc(db, "core_services", id));
+      loadServices();
+    } catch (err) {
+      console.error("Gagal menghapus:", err);
     }
   };
 
@@ -88,15 +96,13 @@ export default function Services() {
     loadServices();
   }, []);
 
-  if (loading) return <p className="p-5">Memuat data layanan...</p>;
+  if (loading) return <p className="p-5">Memuat layanan...</p>;
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-blue-600 mb-6">
-        Manajemen Layanan
-      </h1>
+      <h1 className="text-2xl font-bold text-blue-600 mb-6">Manajemen Layanan</h1>
 
-      {/* INPUT TAMBAH LAYANAN */}
+      {/* ADD FORM */}
       <div className="p-4 bg-white shadow rounded mb-5 flex gap-3">
         <input
           className="border p-2 rounded w-48"
@@ -120,55 +126,60 @@ export default function Services() {
         </button>
       </div>
 
-      {/* LIST LAYANAN */}
+      {/* LIST SERVICES */}
       <div className="space-y-3">
         {services.map((svc) => (
           <div
             key={svc.id}
-            className="p-4 bg-white rounded shadow flex justify-between"
+            className="p-4 bg-white rounded shadow flex justify-between items-center"
           >
             <div>
-              <p className="font-semibold">{svc.name}</p>
-              <p className="text-gray-600">
-                Harga dasar: Rp {svc.base_price}
-              </p>
+              <p className="font-semibold text-lg">{svc.name}</p>
+              <p className="text-gray-600">Harga dasar: Rp {svc.base_price}</p>
             </div>
 
-            <button
-              onClick={() => openEdit(svc)}
-              className="px-3 py-1 bg-yellow-500 text-white rounded"
-            >
-              Edit
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => openEdit(svc)}
+                className="px-3 py-1 bg-yellow-500 text-white rounded"
+              >
+                Edit
+              </button>
+
+              <button
+                onClick={() => deleteService(svc.id)}
+                className="px-3 py-1 bg-red-600 text-white rounded"
+              >
+                Hapus
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* ======================== */}
-      {/* MODAL EDIT LAYANAN       */}
-      {/* ======================== */}
-      {editItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white w-80 p-5 rounded shadow-xl">
-            <h2 className="text-xl font-bold mb-3 text-blue-600">
+      {/* EDIT MODAL */}
+      {editModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded shadow w-80">
+            <h2 className="text-xl font-semibold mb-3">
               Edit Layanan
             </h2>
 
             <input
-              className="border p-2 rounded w-full mb-3"
+              className="border p-2 w-full rounded mb-2"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
             />
 
             <input
-              className="border p-2 rounded w-full mb-3"
+              className="border p-2 w-full rounded mb-4"
               value={editPrice}
               onChange={(e) => setEditPrice(e.target.value)}
             />
 
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-2">
               <button
-                onClick={() => setEditItem(null)}
+                onClick={() => setEditModal(false)}
                 className="px-3 py-1 bg-gray-400 text-white rounded"
               >
                 Batal
@@ -186,4 +197,4 @@ export default function Services() {
       )}
     </div>
   );
-}
+        }

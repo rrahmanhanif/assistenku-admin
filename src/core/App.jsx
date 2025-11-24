@@ -2,16 +2,17 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import { 
-  onAuthStateChanged, 
-  signOut 
+import {
+  onAuthStateChanged,
+  signOut
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 
-import { 
-  doc, 
-  getDoc 
+import {
+  doc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
+// 🔥 WAJIB — path ini 100% benar untuk folder kamu
 import { auth, db } from "../firebaseConfig.js";
 
 // Pages
@@ -144,4 +145,4 @@ export default function App() {
       </Routes>
     </BrowserRouter>
   );
-                                     }
+                }

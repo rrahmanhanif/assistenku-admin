@@ -3,7 +3,6 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// Your Firebase Web App Config
 const firebaseConfig = {
   apiKey: "AIzaSyBSL87qkuwSQU8aXvLuu24nV7jUoX2mOSA",
   authDomain: "assistenku-8ef85.firebaseapp.com",
@@ -11,14 +10,11 @@ const firebaseConfig = {
   storageBucket: "assistenku-8ef85.firebasestorage.app",
   messagingSenderId: "320243806907",
   appId: "1:320243806907:web:50ecedb9a20063d7ee2f9e",
-  measurementId: "G-ZKVLZGE552",
+  measurementId: "G-ZKVLZGE552"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Export Firebase services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-
-export default app;

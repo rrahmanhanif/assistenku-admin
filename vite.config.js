@@ -8,14 +8,30 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico"],
+      workbox: {
+        globPatterns: ["**/*.{js,css,html}"],
+      },
       manifest: {
-        name: "Assistenku Core",
+        name: "Assistenku Admin",
         short_name: "Assistenku",
-        theme_color: "#0d6efd",
+        description: "Assistenku - Admin Panel",
+        theme_color: "#1d4ed8",
         background_color: "#ffffff",
         display: "standalone",
-        icons: []
-      }
-    })
-  ]
+        start_url: "/",
+        icons: [
+          {
+            src: "/pwa-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "/pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+          },
+        ],
+      },
+    }),
+  ],
 });

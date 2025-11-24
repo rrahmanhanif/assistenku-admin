@@ -1,5 +1,5 @@
 /* ============================================
-   src/App.jsx  —  FINAL CLEAN VERSION
+   src/App.jsx — FINAL CLEAN VERSION
    ============================================ */
 
 import { useState, useEffect } from "react";
@@ -25,9 +25,7 @@ export default function App() {
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  /* ========================================================
-     🔐 AUTH + LOAD ROLE + GLOBAL GATEWAY PREP
-     ======================================================== */
+  // AUTH + LOAD ROLE
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) {
@@ -39,7 +37,6 @@ export default function App() {
 
       setUser(u);
 
-      // load role admin dari Firestore (core_users)
       const docRef = doc(db, "core_users", u.uid);
       const snap = await getDoc(docRef);
 
@@ -55,9 +52,7 @@ export default function App() {
     return () => unsub();
   }, []);
 
-  /* ========================================================
-     🔐 LOGOUT
-     ======================================================== */
+  // LOGOUT
   const logoutNow = async () => {
     await signOut(auth);
     setUser(null);
@@ -66,21 +61,16 @@ export default function App() {
 
   if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
 
-  /* ========================================================
-     🔒 PROTECTED ROUTE
-     ======================================================== */
+  // PROTECTED ROUTE
   const RequireAuth = ({ children }) => {
     if (!user) return <Navigate to="/" replace />;
     return children;
   };
 
-  /* ========================================================
-     ROUTING
-     ======================================================== */
+  // ROUTER
   return (
     <BrowserRouter>
       <Routes>
-
         {/* LOGIN */}
         <Route
           path="/"

@@ -1,7 +1,4 @@
-/* ============================================
-   src/components/AdminLayout.jsx — FINAL VERSION
-   ============================================ */
-
+// src/components/AdminLayout.jsx
 import { NavLink } from "react-router-dom";
 
 export default function AdminLayout({ children, onLogout }) {
@@ -21,6 +18,7 @@ export default function AdminLayout({ children, onLogout }) {
           <MenuItem to="/reports" label="Reports" />
           <MenuItem to="/transactions" label="Transactions" />
           <MenuItem to="/wallet" label="Wallet" />
+          <MenuItem to="/services" label="Manajemen Layanan" /> {/* NEW */}
         </nav>
 
         {/* LOGOUT */}
@@ -48,7 +46,6 @@ export default function AdminLayout({ children, onLogout }) {
           </button>
         </div>
 
-        {/* PAGE CONTENT */}
         <div className="p-5">{children}</div>
       </main>
     </div>

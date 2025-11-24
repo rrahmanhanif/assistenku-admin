@@ -1,24 +1,15 @@
-// src/firebase.js
-
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBSL87qkuwSQU8aXvLuu24nV7jUoX2mOSA",
-  authDomain: "assistenku-8ef85.firebaseapp.com",
-  projectId: "assistenku-8ef85",
-  storageBucket: "assistenku-8ef85.appspot.com",
-  messagingSenderId: "320243806907",
-  appId: "1:320243806907:web:50ecedb9a20063d7ee2f9e",
-  measurementId: "G-ZKVLZGE552",
+  apiKey: "AIzaSyAhGxVi8Sypbq3gvjanY016SwkOz0EKpnM",
+  authDomain: "assistenku-admin.firebaseapp.com",
+  projectId: "assistenku-admin",
+  storageBucket: "assistenku-admin.firebasestorage.app",
+  messagingSenderId: "1020511937068",
+  appId: "1:1020511937068:web:fc6e7491d8a79af7486789",
+  measurementId: "G-9NCX2N53XB"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-// Services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+export const app = initializeApp(firebaseConfig);
+export const analytics = getAnalytics(app);

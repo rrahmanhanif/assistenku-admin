@@ -13,7 +13,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 // 🔥 WAJIB — path ini 100% benar untuk folder kamu
-import { auth, db } from "../firebase.js";
+import { auth, db } from "./firebase.js";
 
 // Pages
 import Login from "../pages/Login";

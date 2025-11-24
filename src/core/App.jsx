@@ -13,7 +13,7 @@ import DashboardFinanceEnterprise from "./pages/DashboardFinanceEnterprise";
 import Reports from "./pages/Reports";
 import Transactions from "./pages/Transactions";
 import Wallet from "./pages/Wallet";
-import Services from "./pages/Services"; // ← halaman baru
+import Services from "./pages/Services"; // NEW PAGE
 
 // Layout
 import AdminLayout from "./components/AdminLayout";
@@ -23,9 +23,9 @@ export default function App() {
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ========================================================
+  // ======================================================
   // 🔐 AUTH + ROLE LOADER
-  // ========================================================
+  // ======================================================
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) {
@@ -37,7 +37,7 @@ export default function App() {
 
       setUser(u);
 
-      // Load role
+      // Load role dari Firestore
       const docRef = doc(db, "core_users", u.uid);
       const snap = await getDoc(docRef);
 
@@ -53,6 +53,7 @@ export default function App() {
     return () => unsub();
   }, []);
 
+  // Logout
   const logoutNow = async () => {
     await signOut(auth);
     setUser(null);
@@ -61,9 +62,9 @@ export default function App() {
 
   if (loading) return <p style={{ padding: 20 }}>Memuat...</p>;
 
-  // ========================================================
+  // ======================================================
   // 🔒 PROTECTED ROUTE
-  // ========================================================
+  // ======================================================
   const RequireAuth = ({ children }) => {
     if (!user) return <Navigate to="/" replace />;
     return children;
@@ -151,9 +152,9 @@ export default function App() {
           }
         />
 
-        {/* DEFAULT */}
+        {/* DEFAULT REDIRECT */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );
-    }
+          }

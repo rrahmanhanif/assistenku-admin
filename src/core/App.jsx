@@ -4,8 +4,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
-// === PENTING! Path firebase baru ===
-import { auth, db } from "./firebase";
+// === PATH YANG BENAR (firebase.js berada di src/) ===
+import { auth, db } from "../firebase";
 
 // Pages
 import Login from "../pages/Login";
@@ -24,7 +24,6 @@ export default function App() {
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // AUTH + ROLE LOADER
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) {
@@ -61,13 +60,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* LOGIN */}
         <Route
           path="/"
           element={!user ? <Login /> : <Navigate to="/dashboard" />}
         />
 
-        {/* DASHBOARD ADMIN */}
         <Route
           path="/dashboard"
           element={
@@ -79,7 +76,6 @@ export default function App() {
           }
         />
 
-        {/* FINANCE */}
         <Route
           path="/finance"
           element={
@@ -91,7 +87,6 @@ export default function App() {
           }
         />
 
-        {/* REPORTS */}
         <Route
           path="/reports"
           element={
@@ -103,7 +98,6 @@ export default function App() {
           }
         />
 
-        {/* TRANSACTIONS */}
         <Route
           path="/transactions"
           element={
@@ -115,7 +109,6 @@ export default function App() {
           }
         />
 
-        {/* WALLET */}
         <Route
           path="/wallet"
           element={
@@ -127,7 +120,6 @@ export default function App() {
           }
         />
 
-        {/* SERVICES */}
         <Route
           path="/services"
           element={
@@ -139,58 +131,8 @@ export default function App() {
           }
         />
 
-        {/* DEFAULT */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );
-}            <RequireAuth>
-              <AdminLayout onLogout={logoutNow}>
-                <Reports />
-              </AdminLayout>
-            </RequireAuth>
-          }
-        />
-
-        {/* TRANSACTIONS */}
-        <Route
-          path="/transactions"
-          element={
-            <RequireAuth>
-              <AdminLayout onLogout={logoutNow}>
-                <Transactions />
-              </AdminLayout>
-            </RequireAuth>
-          }
-        />
-
-        {/* WALLET */}
-        <Route
-          path="/wallet"
-          element={
-            <RequireAuth>
-              <AdminLayout onLogout={logoutNow}>
-                <Wallet />
-              </AdminLayout>
-            </RequireAuth>
-          }
-        />
-
-        {/* SERVICES PAGE */}
-        <Route
-          path="/services"
-          element={
-            <RequireAuth>
-              <AdminLayout onLogout={logoutNow}>
-                <Services />
-              </AdminLayout>
-            </RequireAuth>
-          }
-        />
-
-        {/* DEFAULT REDIRECT */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </BrowserRouter>
-  );
-          }
+}

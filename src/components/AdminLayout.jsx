@@ -1,4 +1,7 @@
-// src/components/AdminLayout.jsx
+/* ============================================
+   src/components/AdminLayout.jsx — FINAL VERSION
+   ============================================ */
+
 import { NavLink } from "react-router-dom";
 
 export default function AdminLayout({ children, onLogout }) {

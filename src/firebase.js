@@ -1,29 +1,29 @@
-// Firebase Core
+// src/firebase.js
+
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
 import { getDatabase } from "firebase/database";
+import { getStorage } from "firebase/storage";
 
-// Firebase Config
+// Konfigurasi Firebase Client SDK
 const firebaseConfig = {
-  apiKey: "AIzaSyBSL87qkuwSQU8aXvLuu24nV7jUoX2mOSA",
+  apiKey: import.meta.env.VITE_FIREBASE_WEB_API_KEY || "AIzaSyBSL87qkuwSQU8aXvLuu24nV7jUoX2mOSA",
   authDomain: "assistenku-8ef85.firebaseapp.com",
   databaseURL: "https://assistenku-8ef85-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "assistenku-8ef85",
   storageBucket: "assistenku-8ef85.firebasestorage.app",
   messagingSenderId: "320243806907",
   appId: "1:320243806907:web:50ecedb9a20063d7ee2f9e",
-  measurementId: "G-ZKVLZGE552",
+  measurementId: "G-ZKVLZGE552"
 };
 
-// Initialize
+// Init
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 
-// Export service untuk digunakan di seluruh aplikasi
+// Services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const storage = getStorage(app);
-export const rtdb = getDatabase(app);
+export const rtdb = getDatabase(app);      // jika ingin realtime database
+export const storage = getStorage(app);    // jika ingin upload foto/video
+export default app;

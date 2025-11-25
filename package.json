@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "echo \"Build skipped: no vite\"",
-    "dev": "echo \"Dev mode nonaktif karena tidak ada vite\"",
-    "start": "echo \"Start nonaktif\""
+    "build": "echo \"Skipping build\"",
+    "dev": "echo \"Skipping dev\"",
+    "start": "echo \"Skipping start\""
   },
   "dependencies": {
     "react": "^18.3.1",

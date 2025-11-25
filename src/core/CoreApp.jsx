@@ -1,8 +1,7 @@
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-// Import halaman yang kamu pakai
-import DashboardAdmin from "./pages/DashboardAdmin";
-import Login from "./pages/Login";
+import Login from "../pages/Login.jsx";
+import DashboardAdmin from "../pages/DashboardAdmin.jsx";
 
 export default function CoreApp() {
   return (

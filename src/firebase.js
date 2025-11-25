@@ -30,15 +30,17 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyBSL87qkuwSQU8aXvLuu24nV7jUoX2mOSA",
   authDomain: "assistenku-8ef85.firebaseapp.com",
+  databaseURL: "https://assistenku-8ef85-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "assistenku-8ef85",
-  storageBucket: "assistenku-8ef85.appspot.com",
-  messagingSenderId: "742556046497",
-  appId: "1:742556046497:web:e4c43f4d9ab07fad62bd97"
+  storageBucket: "assistenku-8ef85.firebasestorage.app",
+  messagingSenderId: "320243806907",
+  appId: "1:320243806907:web:50ecedb9a20063d7ee2f9e",
+  measurementId: "G-ZKVLZGE552"
 };
-
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);

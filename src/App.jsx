@@ -1,11 +1,11 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard"; // pastikan file ini ada
+import Dashboard from "./pages/Dashboard"; 
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -28,25 +28,39 @@ export default function App() {
     );
   }
 
+  const handleLogout = async () => {
+    await signOut(auth);
+    window.location.href = "/login";
+  };
+
   return (
     <BrowserRouter>
       <Routes>
-        {/* Jika sudah login, buka Dashboard. Kalau belum, ke Login */}
-        <Route
-          path="/"
-          element={user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />}
-        />
-
-        {/* Login halaman biasa */}
         <Route
           path="/login"
           element={user ? <Navigate to="/dashboard" /> : <Login />}
         />
 
-        {/* Dashboard khusus admin */}
         <Route
           path="/dashboard"
-          element={user ? <Dashboard /> : <Navigate to="/login" />}
+          element={
+            user ? (
+              <Dashboard onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        <Route
+          path="*"
+          element={
+            user ? (
+              <Navigate to="/dashboard" />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
         />
       </Routes>
     </BrowserRouter>

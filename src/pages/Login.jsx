@@ -1,37 +1,34 @@
-import { useState } from "react";
-import { auth } from "../firebase";
+import { auth } from "../firebase.js";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
-export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [err, setErr] = useState("");
+export function renderLogin() {
+    const app = document.getElementById("app");
 
-  const handleLogin = async () => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      window.location.href = "/dashboard";
-    } catch (e) {
-      setErr(e.message);
-    }
-  };
+    app.innerHTML = `
+        <div class="login-container">
+            <h2>Assistenku Admin</h2>
+            <input id="email" type="email" placeholder="Email" />
+            <input id="password" type="password" placeholder="Password" />
+            <button id="loginBtn">Login</button>
+            <p id="msg"></p>
+        </div>
+    `;
 
-  return (
-    <div style={{ padding: 20 }}>
-      <h2>Login Admin</h2>
-      <input
-        placeholder="Email"
-        onChange={(e) => setEmail(e.target.value)}
-        style={{ display: "block", marginBottom: 10 }}
-      />
-      <input
-        placeholder="Password"
-        type="password"
-        onChange={(e) => setPassword(e.target.value)}
-        style={{ display: "block", marginBottom: 10 }}
-      />
-      <button onClick={handleLogin}>Login</button>
-      {err && <p style={{ color: "red" }}>{err}</p>}
-    </div>
-  );
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const msg = document.getElementById("msg");
+
+        if (!email || !password) {
+            msg.innerText = "Email dan password wajib diisi.";
+            return;
+        }
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            window.location.hash = "#/dashboard";
+        } catch (error) {
+            msg.innerText = "Login gagal: " + error.code;
+        }
+    });
 }

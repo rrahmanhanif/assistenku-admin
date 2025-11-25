@@ -1,17 +1,26 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App'
+import { renderLogin } from "./pages/login.js";
+import { renderDashboard } from "./pages/dashboard.js";
+import { auth } from "./firebase.js";
+import { onAuthStateChanged } from "firebase/auth";
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-)
-import { initializeApp } from "firebase/app";
-import { getAnalytics, logEvent } from "firebase/analytics";
+function router() {
+    const hash = window.location.hash;
 
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+    if (hash === "#/dashboard") {
+        renderDashboard();
+    } else {
+        renderLogin();
+    }
+}
 
-// contoh event otomatis
-logEvent(analytics, "admin_dashboard_opened");
+window.addEventListener("hashchange", router);
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        window.location.hash = "#/dashboard";
+    } else {
+        window.location.hash = "#/login";
+    }
+});
+
+router();

@@ -1,10 +1,11 @@
+// src/pages/Dashboard.jsx
 import CardStat from "../components/CardStat";
 
 export default function Dashboard({ onLogout }) {
   return (
     <div className="ml-64 p-8">
 
-      {/* Bar atas */}
+      {/* Header Dashboard */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Dashboard</h1>
 
@@ -22,6 +23,7 @@ export default function Dashboard({ onLogout }) {
         <CardStat title="Total Mitra" value="0" />
         <CardStat title="Order Hari Ini" value="0" />
       </div>
+
     </div>
   );
 }

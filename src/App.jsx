@@ -1,9 +1,9 @@
-// src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 
+// Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 
@@ -36,20 +36,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* FIX UTAMA → supaya domain utama tidak blank */}
-        <Route
-          path="/"
-          element={user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />}
-        />
-
-        {/* Login Page */}
         <Route
           path="/login"
           element={user ? <Navigate to="/dashboard" /> : <Login />}
         />
 
-        {/* Dashboard Page */}
         <Route
           path="/dashboard"
           element={
@@ -61,12 +52,12 @@ export default function App() {
           }
         />
 
-        {/* Fallback route */}
         <Route
           path="*"
-          element={user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />}
+          element={
+            user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
+          }
         />
-
       </Routes>
     </BrowserRouter>
   );

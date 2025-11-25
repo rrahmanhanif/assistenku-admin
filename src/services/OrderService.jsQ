@@ -1,0 +1,8 @@
+import { ref, push, update } from "firebase/database";
+import { db } from "../../firebase";
+
+export const createOrder = (customerId, data) =>
+  push(ref(db, "orders"), { customerId, status: "pending", ...data, createdAt: Date.now() });
+
+export const assignOrder = (orderId, mitraId) =>
+  update(ref(db, `orders/${orderId}`), { mitraId, status: "assigned", updatedAt: Date.now() });

@@ -1,7 +1,15 @@
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
+
 export default function LogoutButton() {
   const handleLogout = () => {
-    localStorage.removeItem("assistenku_admin");
-    window.location.href = "/login";
+    signOut(auth)
+      .then(() => {
+        window.location.href = "/login";
+      })
+      .catch((err) => {
+        console.error("Logout gagal:", err);
+      });
   };
 
   return (

@@ -3,10 +3,10 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
+import { getStorage } from "firebase/storage";
 
-// Gunakan env dari Vercel
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_WEB_API_KEY,
+  apiKey: "AIzaSyBSL87qkuwSQU8aXvLuu24nV7jUoX2mOSA",
   authDomain: "assistenku-8ef85.firebaseapp.com",
   databaseURL: "https://assistenku-8ef85-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "assistenku-8ef85",
@@ -16,8 +16,11 @@ const firebaseConfig = {
   measurementId: "G-ZKVLZGE552"
 };
 
-const app = initializeApp(firebaseConfig);
+// Inisialisasi Firebase
+export const app = initializeApp(firebaseConfig);
 
+// Fitur Firebase yang dipakai aplikasi
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const rtdb = getDatabase(app);
+export const storage = getStorage(app);

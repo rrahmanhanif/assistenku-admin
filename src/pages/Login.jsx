@@ -1,5 +1,20 @@
 import { auth } from "../firebase.js";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
+import { getUserRole } from "../services/adminRoles";
+
+async function handleLogin() {
+  const user = await signInWithEmailAndPassword(auth, email, password);
+  const role = await getUserRole(user.user.uid);
+
+  if (role !== "admin") {
+    alert("Hanya admin yang boleh masuk");
+    return;
+  }
+
+  // redirect ke dashboard
+}
 
 export function renderLogin() {
     const app = document.getElementById("app");

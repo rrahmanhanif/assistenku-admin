@@ -1,102 +1,61 @@
-// src/pages/Users.jsx
 import { useEffect, useState } from "react";
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { db } from "../firebase";
+import { getAllUsers, createUser, updateUser, deleteUser } from "../services/adminCRUD";
 
 export default function Users() {
-  const [customers, setCustomers] = useState([]);
-  const [mitra, setMitra] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState([]);
+  const [form, setForm] = useState({ name: "", email: "", role: "customer" });
 
-  const loadData = async () => {
-    const custSnap = await getDocs(collection(db, "customers"));
-    const mitraSnap = await getDocs(collection(db, "mitra"));
+  async function load() {
+    const data = await getAllUsers();
+    setUsers(data);
+  }
 
-    setCustomers(custSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    setMitra(mitraSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+  useEffect(() => { load(); }, []);
 
-    setLoading(false);
-  };
+  async function handleCreate() {
+    await createUser(form);
+    await load();
+  }
 
-  const deleteUser = async (collectionName, id) => {
-    if (!window.confirm("Hapus user ini?")) return;
+  async function handleUpdate(id, newData) {
+    await updateUser(id, newData);
+    await load();
+  }
 
-    await deleteDoc(doc(db, collectionName, id));
-    loadData();
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  if (loading) return <p className="p-5">Memuat data...</p>;
+  async function handleDelete(id) {
+    await deleteUser(id);
+    await load();
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Users Management</h1>
+    <div>
+      <h2>Kelola Users</h2>
 
-      {/* CUSTOMER */}
-      <section className="mb-10">
-        <h2 className="text-xl font-semibold mb-3">Customer</h2>
+      <input placeholder="Nama" onChange={e => setForm({...form, name:e.target.value})}/>
+      <input placeholder="Email" onChange={e => setForm({...form, email:e.target.value})}/>
+      <select onChange={e => setForm({...form, role:e.target.value})}>
+        <option value="admin">Admin</option>
+        <option value="mitra">Mitra</option>
+        <option value="customer">Customer</option>
+      </select>
 
-        <div className="bg-white shadow rounded-lg p-4">
-          {customers.length === 0 ? (
-            <p className="text-gray-500">Tidak ada customer.</p>
-          ) : (
-            customers.map((c) => (
-              <div
-                key={c.id}
-                className="flex justify-between border-b py-3 items-center"
-              >
-                <div>
-                  <p className="font-semibold">{c.nama}</p>
-                  <p className="text-sm text-gray-600">{c.email}</p>
-                </div>
+      <button onClick={handleCreate}>Tambah User</button>
 
-                <button
-                  onClick={() => deleteUser("customers", c.id)}
-                  className="px-3 py-1 bg-red-600 text-white rounded"
-                >
-                  Hapus
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
-
-      {/* MITRA */}
-      <section>
-        <h2 className="text-xl font-semibold mb-3">Mitra</h2>
-
-        <div className="bg-white shadow rounded-lg p-4">
-          {mitra.length === 0 ? (
-            <p className="text-gray-500">Tidak ada mitra.</p>
-          ) : (
-            mitra.map((m) => (
-              <div
-                key={m.id}
-                className="flex justify-between border-b py-3 items-center"
-              >
-                <div>
-                  <p className="font-semibold">{m.nama}</p>
-                  <p className="text-sm text-gray-600">{m.email}</p>
-                  <p className="text-sm text-gray-600">
-                    Layanan: {m.layanan}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => deleteUser("mitra", m.id)}
-                  className="px-3 py-1 bg-red-600 text-white rounded"
-                >
-                  Hapus
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
+      <table>
+        <tbody>
+          {users.map(u => (
+            <tr key={u.id}>
+              <td>{u.name}</td>
+              <td>{u.email}</td>
+              <td>{u.role}</td>
+              <td>
+                <button onClick={() => handleUpdate(u.id, { role:"mitra" })}>Jadikan Mitra</button>
+                <button onClick={() => handleDelete(u.id)}>Hapus</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

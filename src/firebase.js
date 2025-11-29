@@ -1,18 +1,22 @@
-
-// Firebase 10+ Modular SDK
+// src/firebase.js
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  getAuth
+} from "firebase/auth";
+import {
+  getFirestore
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBSL87qkuwSQU8aXvLuu24nV7jUoX2mOSA",
   authDomain: "assistenku-8ef85.firebaseapp.com",
   projectId: "assistenku-8ef85",
   storageBucket: "assistenku-8ef85.appspot.com",
-  messagingSenderId: "230530907663",
-  appId: "1:230530907663:web:80ebf182eba323a630e0e0"
+  messagingSenderId: "550042793325",
+  appId: "1:550042793325:web:deaf9c950e7e3f9534aabe"
 };
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export default app;

@@ -1,26 +1,19 @@
-import { renderLogin } from "./pages/login.js";
-import { renderDashboard } from "./pages/dashboard.js";
-import { auth } from "./firebase.js";
-import { onAuthStateChanged } from "firebase/auth";
+// src/main.jsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import App from "./App";
 
-function router() {
-    const hash = window.location.hash;
+// WAJIB: import sesuai case folder kamu
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 
-    if (hash === "#/dashboard") {
-        renderDashboard();
-    } else {
-        renderLogin();
-    }
-}
-
-window.addEventListener("hashchange", router);
-
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        window.location.hash = "#/dashboard";
-    } else {
-        window.location.hash = "#/login";
-    }
-});
-
-router();
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="*" element={<h1>404 Not Found</h1>} />
+    </Routes>
+  </BrowserRouter>
+);

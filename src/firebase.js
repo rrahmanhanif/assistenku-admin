@@ -1,30 +1,3 @@
-roles/
-  {uid}/role = "admin" | "mitra" | "customer"
-
-users/
-  {uid}/
-    email: string
-    name: string
-    role: string
-
-orders/
-  {orderId}/
-    customerId: string
-    mitraId: string|null
-    service: string
-    status: "pending" | "assigned" | "in_progress" | "done"
-    timestamp: number
-
-services/
-  {serviceId}/
-    name: string
-    price: number
-
-mitra_profiles/
-  {mitraId}/
-    name: string
-    email: string
-    available: boolean
 
 // Firebase 10+ Modular SDK
 import { initializeApp } from "firebase/app";

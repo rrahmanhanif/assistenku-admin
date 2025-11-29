@@ -1,18 +1,10 @@
-import { auth } from "../firebase.js";
-import { signOut } from "firebase/auth";
+import React from "react";
 
-export function renderDashboard() {
-    const app = document.getElementById("app");
-
-    app.innerHTML = `
-        <div class="dashboard">
-            <h1>Dashboard Admin</h1>
-            <button id="logoutBtn">Logout</button>
-        </div>
-    `;
-
-    document.getElementById("logoutBtn").onclick = async () => {
-        await signOut(auth);
-        window.location.hash = "#/login";
-    };
+export default function Dashboard() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <p>Selamat datang di panel admin Assistenku.</p>
+    </div>
+  );
 }

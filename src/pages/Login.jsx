@@ -14,10 +14,25 @@ if (!validatePassword(password)) {
   return;
 }
 
-export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+"use client";
+
+let lastLogin = 0;
+
+export default function LoginPage() {
+  const doLogin = async () => {
+    const now = Date.now();
+    if (now - lastLogin < 8000)
+      return alert("Tunggu 8 detik sebelum mencoba lagi");
+
+    lastLogin = now;
+
+    // ... login admin
+  };
+
+  return (
+    <button onClick={doLogin}>Login</button>
+  );
+}
 
   const handleLogin = async () => {
     setLoading(true);

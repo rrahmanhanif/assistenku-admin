@@ -11,6 +11,7 @@ function App() {
         <Route path="/chat-monitor/:orderId" element={<OrderChatMonitor />} />
         <Route path="/history" element={<History />} />
         <Route path="/rating" element={<Rating />} />
+        <Route path="/finance" element={<Finance />} />
       </Routes>
     </BrowserRouter>
   );

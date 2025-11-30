@@ -3,7 +3,13 @@ import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 import { validateEmail, validatePassword } from "@/utils/validator";
+const [hp, setHp] = useState("");
 
+if (hp !== "") {
+  alert("Bot login attempt blocked!");
+  return;
+}
+<input type="text" value={hp} onChange={(e)=>setHp(e.target.value)} style={{display:"none"}} />
 if (!validateEmail(email)) {
   alert("Email tidak valid!");
   return;

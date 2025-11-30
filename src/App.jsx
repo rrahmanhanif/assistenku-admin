@@ -1,20 +1,22 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+// src/App.jsx
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Orders from "./pages/Orders";
+import OrderDetail from "./pages/OrderDetail";
 
-function App() {
+export default function App() {
+  const loggedIn = localStorage.getItem("admin_auth") === "true";
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/chat-monitor/:orderId" element={<OrderChatMonitor />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/rating" element={<Rating />} />
-        <Route path="/finance" element={<Finance />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={loggedIn ? <Dashboard /> : <Navigate to="/login" />} />
+      <Route path="/login" element={<Login />} />
+
+      <Route path="/orders" element={loggedIn ? <Orders /> : <Navigate to="/login" />} />
+      <Route path="/orders/:id" element={loggedIn ? <OrderDetail /> : <Navigate to="/login" />} />
+    </Routes>
   );
 }
-
-export default App;

@@ -8,6 +8,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/chat-monitor/:orderId" element={<OrderChatMonitor />} />
       </Routes>
     </BrowserRouter>
   );

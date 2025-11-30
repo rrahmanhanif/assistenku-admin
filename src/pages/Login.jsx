@@ -2,6 +2,17 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
+import { validateEmail, validatePassword } from "@/utils/validator";
+
+if (!validateEmail(email)) {
+  alert("Email tidak valid!");
+  return;
+}
+
+if (!validatePassword(password)) {
+  alert("Password minimal 6 karakter");
+  return;
+}
 
 export default function Login() {
   const [email, setEmail] = useState("");

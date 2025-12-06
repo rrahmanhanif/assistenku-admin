@@ -62,3 +62,9 @@ export async function renderAdminDashboard() {
 
   // Tambahkan form untuk CRUD jika diperlukan…
 }
+supabase
+  .channel("orders-changes")
+  .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
+    console.log("New update on orders:", payload);
+  })
+  .subscribe();

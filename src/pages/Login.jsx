@@ -1,10 +1,7 @@
 // src/pages/Login.jsx
-"use client";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
-
-// FIX: ganti alias "@" → relative path biasa
 import { validateEmail, validatePassword } from "../utils/validator";
 
 export default function LoginPage() {
@@ -12,21 +9,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Honeypot (anti bot)
+  // Honeypot anti bot
   const [hp, setHp] = useState("");
-  if (hp !== "") {
-    alert("Bot login attempt blocked!");
-    return null;
-  }
+  if (hp !== "") return null; // bot auto fail
 
-  let lastLogin = 0;
+  const lastLogin = useRef(0);
 
   const handleLogin = async () => {
     const now = Date.now();
-    if (now - lastLogin < 8000)
-      return alert("Tunggu 8 detik sebelum mencoba lagi");
-
-    lastLogin = now;
+    if (now - lastLogin.current < 8000) {
+      alert("Tunggu 8 detik sebelum mencoba lagi");
+      return;
+    }
+    lastLogin.current = now;
 
     if (!validateEmail(email)) {
       alert("Email tidak valid!");
@@ -53,12 +48,11 @@ export default function LoginPage() {
     <div style={{ padding: 40 }}>
       <h2>Assistenku Admin Login</h2>
 
-      {/* Hidden honeypot */}
       <input
         type="text"
+        style={{ display: "none" }}
         value={hp}
         onChange={(e) => setHp(e.target.value)}
-        style={{ display: "none" }}
       />
 
       <input
@@ -66,8 +60,7 @@ export default function LoginPage() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
-      <br />
-      <br />
+      <br /><br />
 
       <input
         type="password"
@@ -75,8 +68,7 @@ export default function LoginPage() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      <br />
-      <br />
+      <br /><br />
 
       <button onClick={handleLogin} disabled={loading}>
         {loading ? "Loading..." : "Login"}

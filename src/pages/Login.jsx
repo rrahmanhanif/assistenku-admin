@@ -1,51 +1,49 @@
 // src/pages/Login.jsx
+"use client";
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 import { validateEmail, validatePassword } from "@/utils/validator";
-const [hp, setHp] = useState("");
-
-if (hp !== "") {
-  alert("Bot login attempt blocked!");
-  return;
-}
-<input type="text" value={hp} onChange={(e)=>setHp(e.target.value)} style={{display:"none"}} />
-if (!validateEmail(email)) {
-  alert("Email tidak valid!");
-  return;
-}
-
-if (!validatePassword(password)) {
-  alert("Password minimal 6 karakter");
-  return;
-}
-
-"use client";
-
-let lastLogin = 0;
 
 export default function LoginPage() {
-  const doLogin = async () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Honeypot (anti bot)
+  const [hp, setHp] = useState("");
+  if (hp !== "") {
+    alert("Bot login attempt blocked!");
+    return null;
+  }
+
+  let lastLogin = 0;
+
+  const handleLogin = async () => {
     const now = Date.now();
     if (now - lastLogin < 8000)
       return alert("Tunggu 8 detik sebelum mencoba lagi");
 
     lastLogin = now;
 
-    // ... login admin
-  };
+    // Validasi email
+    if (!validateEmail(email)) {
+      alert("Email tidak valid!");
+      return;
+    }
 
-  return (
-    <button onClick={doLogin}>Login</button>
-  );
-}
+    // Validasi password
+    if (!validatePassword(password)) {
+      alert("Password minimal 6 karakter");
+      return;
+    }
 
-  const handleLogin = async () => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
       window.location.href = "/dashboard";
     } catch (err) {
+      console.error(err);
       alert("Login gagal!");
     }
     setLoading(false);
@@ -55,18 +53,30 @@ export default function LoginPage() {
     <div style={{ padding: 40 }}>
       <h2>Assistenku Admin Login</h2>
 
+      {/* Hidden honeypot */}
+      <input
+        type="text"
+        value={hp}
+        onChange={(e) => setHp(e.target.value)}
+        style={{ display: "none" }}
+      />
+
       <input
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-      /><br/><br/>
+      />
+      <br />
+      <br />
 
       <input
         type="password"
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-      /><br/><br/>
+      />
+      <br />
+      <br />
 
       <button onClick={handleLogin} disabled={loading}>
         {loading ? "Loading..." : "Login"}

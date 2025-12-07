@@ -3,7 +3,9 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
-import { validateEmail, validatePassword } from "@/utils/validator";
+
+// FIX: ganti alias "@" → relative path biasa
+import { validateEmail, validatePassword } from "../utils/validator";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -26,13 +28,11 @@ export default function LoginPage() {
 
     lastLogin = now;
 
-    // Validasi email
     if (!validateEmail(email)) {
       alert("Email tidak valid!");
       return;
     }
 
-    // Validasi password
     if (!validatePassword(password)) {
       alert("Password minimal 6 karakter");
       return;

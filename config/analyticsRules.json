@@ -1,0 +1,64 @@
+{
+  "rules": [
+    {
+      "id": "high_cancellation_rate",
+      "title": "Pengembalian/Pembatalan Tinggi",
+      "description": "Tingkat pembatalan atau gagal bayar melampaui batas sehat.",
+      "thresholds": {
+        "warning": 0.12,
+        "critical": 0.2
+      },
+      "actions": [
+        "Audit alur order dan pastikan stok/mitra tersedia.",
+        "Aktifkan notifikasi dini untuk pesanan berisiko batal.",
+        "Hubungi pelanggan yang batal untuk memahami akar masalah."
+      ],
+      "weight": 30
+    },
+    {
+      "id": "slow_fulfillment",
+      "title": "Waktu Penyelesaian Lambat",
+      "description": "Rata-rata waktu pemenuhan di atas target layanan.",
+      "thresholds": {
+        "warning": 45,
+        "critical": 60
+      },
+      "actions": [
+        "Prioritaskan SLA pada slot sibuk dan optimalkan routing mitra.",
+        "Tampilkan estimasi waktu yang lebih akurat di aplikasi.",
+        "Kirim pengingat otomatis kepada mitra yang tertunda."
+      ],
+      "weight": 25
+    },
+    {
+      "id": "repeat_customer_opportunity",
+      "title": "Peluang Loyalitas Pelanggan",
+      "description": "Pelanggan repeat dapat diaktivasi untuk upsell/retensi.",
+      "thresholds": {
+        "warning": 0.15,
+        "critical": 0.25
+      },
+      "actions": [
+        "Tawarkan voucher loyalitas pada pelanggan repeat.",
+        "Kirim rekomendasi produk berdasarkan riwayat order.",
+        "Segmentasi pelanggan repeat untuk kampanye SMS/WA."
+      ],
+      "weight": 15
+    },
+    {
+      "id": "sentiment_drop",
+      "title": "Sentimen Pelanggan Menurun",
+      "description": "Skor sentimen rata-rata di bawah batas nyaman.",
+      "thresholds": {
+        "warning": 0.55,
+        "critical": 0.45
+      },
+      "actions": [
+        "Tinjau pesan dukungan pelanggan yang sering muncul.",
+        "Perbaiki fitur dengan rating rendah dan lakukan A/B test.",
+        "Tawarkan kompensasi atau kupon kepada pelanggan terdampak."
+      ],
+      "weight": 20
+    }
+  ]
+}

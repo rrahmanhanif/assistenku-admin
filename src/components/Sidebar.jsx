@@ -6,6 +6,7 @@ import {
   TableCellsIcon,
   WalletIcon,
   ArrowLeftOnRectangleIcon,
+  SignalIcon,
 } from "@heroicons/react/24/outline";
 
 export default function Sidebar({ onLogout }) {
@@ -15,6 +16,7 @@ export default function Sidebar({ onLogout }) {
     { name: "Reports", path: "/reports", icon: <DocumentChartBarIcon className="w-5 h-5" /> },
     { name: "Transactions", path: "/transactions", icon: <TableCellsIcon className="w-5 h-5" /> },
     { name: "Wallet", path: "/wallet", icon: <WalletIcon className="w-5 h-5" /> },
+    { name: "Monitoring", path: "/monitoring", icon: <SignalIcon className="w-5 h-5" /> },
   ];
 
   return (
@@ -40,20 +42,3 @@ export default function Sidebar({ onLogout }) {
               }
             >
               {item.icon}
-              <span>{item.name}</span>
-            </NavLink>
-          ))}
-        </nav>
-      </div>
-
-      {/* Logout */}
-      <button
-        onClick={onLogout}
-        className="m-4 flex items-center gap-3 px-4 py-2 rounded bg-red-50 text-red-600 hover:bg-red-100"
-      >
-        <ArrowLeftOnRectangleIcon className="w-5 h-5" />
-        Logout
-      </button>
-    </div>
-  );
-}

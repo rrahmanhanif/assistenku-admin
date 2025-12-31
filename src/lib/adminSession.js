@@ -1,16 +1,32 @@
 // src/lib/adminSession.js
-export function isAdminLoggedIn() {
-  return localStorage.getItem("admin_auth") === "true";
+const KEY = "assistenku_admin_session";
+
+export function saveAdminSession({ uid, email }) {
+  localStorage.setItem(
+    KEY,
+    JSON.stringify({
+      uid,
+      email,
+      verifiedAt: new Date().toISOString(),
+    }),
+  );
 }
 
-export function saveAdminSession(uid, email) {
-  localStorage.setItem("admin_auth", "true");
-  localStorage.setItem("admin_uid", uid);
-  localStorage.setItem("admin_email", email);
+export function getAdminSession() {
+  const raw = localStorage.getItem(KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function isAdminLoggedIn() {
+  const s = getAdminSession();
+  return Boolean(s?.uid && s?.email && s?.verifiedAt);
 }
 
 export function clearAdminSession() {
-  localStorage.removeItem("admin_auth");
-  localStorage.removeItem("admin_uid");
-  localStorage.removeItem("admin_email");
+  localStorage.removeItem(KEY);
 }

@@ -1,11 +1,11 @@
+// src/components/ProtectedRoute.jsx
+import React from "react";
 import { Navigate } from "react-router-dom";
+import { isAdminLoggedIn } from "../lib/adminSession";
 
 export default function ProtectedRoute({ children }) {
-  const admin = localStorage.getItem("assistenku_admin");
-
-  if (!admin) {
-    return <Navigate to="/login" replace />;
+  if (!isAdminLoggedIn()) {
+    return <Navigate to="/" replace />;
   }
-
   return children;
 }

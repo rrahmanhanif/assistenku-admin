@@ -1,5 +1,5 @@
 {
-  "name": "Assistenku-Core",
+  "name": "Assistenku Admin",
   "short_name": "Assistenku",
   "theme_color": "#2196f3",
   "background_color": "#e3f2fd",
@@ -7,23 +7,8 @@
   "orientation": "portrait",
   "start_url": "/",
   "icons": [
-    {
-      "src": "/logo192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/logo512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "/favicon.ico",
-      "sizes": "64x64",
-      "type": "image/x-icon"
-    }
-  ]
-}
-{
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
   "gcm_sender_id": "103953800507"
 }

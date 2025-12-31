@@ -5,12 +5,42 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="theme-color" content="#0b5fff" />
 
-    <!-- PWA -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icons/icon-192.png" />
 
     <title>Assistenku Admin</title>
+
+    <style>
+      :root {
+        --blue: #0b5fff;
+        --blue2: #0a4fe0;
+        --bg1: #061a3a;
+        --bg2: #0b5fff;
+        --card: rgba(255, 255, 255, 0.1);
+        --card2: rgba(255, 255, 255, 0.08);
+        --text: #ffffff;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        color: var(--text);
+        background: radial-gradient(1200px 800px at 20% 0%, rgba(11, 95, 255, 0.35), transparent 60%),
+          radial-gradient(1000px 700px at 80% 20%, rgba(0, 170, 255, 0.25), transparent 55%),
+          linear-gradient(140deg, var(--bg1), var(--bg2));
+      }
+
+      #root {
+        min-height: 100%;
+      }
+    </style>
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>

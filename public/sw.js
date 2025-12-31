@@ -1,6 +1,11 @@
-// public/sw.js
-self.addEventListener("install", () => self.skipWaiting());
-self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+self.addEventListener("install", (event) => {
+  self.skipWaiting();
+});
 
-// Passthrough fetch (cukup untuk PWA installable)
-self.addEventListener("fetch", () => {});
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener("fetch", () => {
+  // noop - minimal SW for install criteria
+});

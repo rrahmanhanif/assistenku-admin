@@ -1,107 +1,233 @@
 // src/pages/AdminLogin.jsx
-import React, { useState, useRef } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../lib/firebaseAdmin";
-import { saveAdminSession } from "../lib/adminSession";
-import { validateEmail, validatePassword } from "../utils/validator";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  auth,
+  initAuthPersistence,
+  sendAdminEmailLink,
+  isEmailLink,
+  completeEmailLinkSignIn,
+  signOutAdmin,
+} from "../lib/firebaseAdmin";
+import { saveAdminSession, isAdminLoggedIn } from "../lib/adminSession";
+import InstallPwaButton from "../components/InstallPwaButton";
+
+const EMAIL_KEY = "assistenku_admin_email_for_link";
+
+function normalizeEmails(csv) {
+  return csv
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+}
 
 export default function AdminLogin() {
+  const navigate = useNavigate();
+  const allowedEmails = useMemo(() => {
+    // Default: sesuai request Anda
+    const fallback = "kontakassistenku@gmail.com,appassistenku@gmail.com";
+    return normalizeEmails(import.meta.env.VITE_ADMIN_ALLOWED_EMAILS || fallback);
+  }, []);
+
+  const loginCode = (import.meta.env.VITE_ADMIN_LOGIN_CODE || "309309").trim();
+
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [stage, setStage] = useState("email"); // email | sent | code
+  const [code, setCode] = useState("");
+  const [info, setInfo] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  // Anti-bot honeypot
-  const [hp, setHp] = useState("");
-  if (hp !== "") return null;
+  useEffect(() => {
+    (async () => {
+      await initAuthPersistence();
 
-  // Anti-bruteforce 8 detik
-  const lastLogin = useRef(0);
+      // Jika sudah ada session admin terverifikasi, langsung ke dashboard
+      if (isAdminLoggedIn()) {
+        navigate("/dashboard", { replace: true });
+        return;
+      }
 
-  async function handleLogin(e) {
+      // Jika ini email-link callback
+      const url = window.location.href;
+      if (isEmailLink(url)) {
+        setBusy(true);
+        setError("");
+        setInfo("Memverifikasi link login...");
+
+        try {
+          const storedEmail = (localStorage.getItem(EMAIL_KEY) || "").toLowerCase();
+
+          // Jika tidak ada storedEmail, minta user isi lagi email yang dipakai
+          if (!storedEmail) {
+            setStage("email");
+            setInfo("Masukkan email yang Anda pakai saat meminta link.");
+            setBusy(false);
+            return;
+          }
+
+          const user = await completeEmailLinkSignIn(storedEmail, url);
+          const userEmail = (user?.email || "").toLowerCase();
+
+          if (!allowedEmails.includes(userEmail)) {
+            await signOutAdmin();
+            throw new Error("Email ini tidak diizinkan untuk Admin.");
+          }
+
+          localStorage.removeItem(EMAIL_KEY);
+          setStage("code");
+          setInfo(`Email terverifikasi: ${userEmail}. Masukkan kode admin.`);
+        } catch (e) {
+          setError(e?.message || "Gagal verifikasi email link.");
+          setInfo("");
+        } finally {
+          setBusy(false);
+        }
+      }
+    })();
+  }, [navigate, allowedEmails]);
+
+  async function handleRequestLink(e) {
     e.preventDefault();
-
-    const now = Date.now();
-    if (now - lastLogin.current < 8000) {
-      alert("Tunggu 8 detik sebelum mencoba lagi");
-      return;
-    }
-    lastLogin.current = now;
-
-    if (!validateEmail(email)) {
-      setError("Email tidak valid");
-      return;
-    }
-
-    if (!validatePassword(password)) {
-      setError("Password minimal 6 karakter");
-      return;
-    }
-
-    setLoading(true);
     setError("");
+    setInfo("");
+    setBusy(true);
 
     try {
-      const res = await signInWithEmailAndPassword(auth, email, password);
-      const user = res.user;
+      const normalized = email.trim().toLowerCase();
+      if (!allowedEmails.includes(normalized)) {
+        throw new Error("Email tidak terdaftar sebagai Admin.");
+      }
 
-      saveAdminSession(user.uid, user.email);
-
-      window.location.href = "/dashboard";
-    } catch (err) {
-      console.error(err);
-      setError("Email atau password salah");
+      localStorage.setItem(EMAIL_KEY, normalized);
+      await sendAdminEmailLink(normalized);
+      setStage("sent");
+      setInfo("Link login sudah dikirim ke email. Buka email lalu klik link.");
+    } catch (e) {
+      setError(e?.message || "Gagal mengirim link.");
+    } finally {
+      setBusy(false);
     }
+  }
 
-    setLoading(false);
+  async function handleVerifyCode(e) {
+    e.preventDefault();
+    setError("");
+    setInfo("");
+    setBusy(true);
+
+    try {
+      const input = code.trim();
+      if (input !== loginCode) {
+        throw new Error("Kode admin salah.");
+      }
+
+      const user = auth.currentUser;
+      const userEmail = (user?.email || "").toLowerCase();
+      if (!user?.uid || !allowedEmails.includes(userEmail)) {
+        throw new Error("Sesi login tidak valid. Ulangi login.");
+      }
+
+      saveAdminSession({ uid: user.uid, email: userEmail });
+      navigate("/dashboard", { replace: true });
+    } catch (e) {
+      setError(e?.message || "Gagal verifikasi kode.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
-    <div className="flex h-screen justify-center items-center bg-blue-100">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white p-6 rounded-2xl shadow-md w-96"
-      >
-        <h2 className="text-2xl font-bold text-center mb-4 text-blue-600">
-          Login Admin
-        </h2>
+    <div style={{ minHeight: "100vh", padding: 18, display: "grid", placeItems: "center" }}>
+      <InstallPwaButton />
 
-        {/* Honeypot */}
-        <input
-          type="text"
-          style={{ display: "none" }}
-          value={hp}
-          onChange={(e) => setHp(e.target.value)}
-        />
+      <div style={{ width: "min(420px, 100%)", border: "1px solid #e5e7eb", borderRadius: 16, padding: 16 }}>
+        <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 10 }}>Admin Assistenku</div>
 
-        <input
-          type="email"
-          className="border p-2 w-full mb-3 rounded"
-          placeholder="Email Admin"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        {error && (
+          <div style={{ background: "#fee2e2", color: "#991b1b", padding: 10, borderRadius: 12, marginBottom: 10 }}>
+            {error}
+          </div>
+        )}
 
-        <input
-          type="password"
-          className="border p-2 w-full mb-4 rounded"
-          placeholder="Kata Sandi"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        {info && (
+          <div style={{ background: "#e0f2fe", color: "#075985", padding: 10, borderRadius: 12, marginBottom: 10 }}>
+            {info}
+          </div>
+        )}
 
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+        {stage !== "code" && (
+          <form onSubmit={handleRequestLink}>
+            <label style={{ display: "block", fontWeight: 700, marginBottom: 6 }}>Email Admin</label>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              placeholder="kontakassistenku@gmail.com"
+              required
+              style={{ width: "100%", padding: 10, borderRadius: 12, border: "1px solid #d1d5db" }}
+            />
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded"
-        >
-          {loading ? "Masuk..." : "Masuk"}
-        </button>
-      </form>
+            <button
+              disabled={busy}
+              type="submit"
+              style={{
+                marginTop: 10,
+                width: "100%",
+                padding: 10,
+                borderRadius: 12,
+                border: "none",
+                background: "#1d4ed8",
+                color: "white",
+                fontWeight: 900,
+                cursor: "pointer",
+                opacity: busy ? 0.7 : 1,
+              }}
+            >
+              {busy ? "Memproses..." : "Kirim Link Login"}
+            </button>
+
+            {stage === "sent" && (
+              <div style={{ marginTop: 10, fontSize: 13, opacity: 0.8 }}>
+                Jika tidak masuk, cek Spam/Promotions. Anda boleh kirim ulang link.
+              </div>
+            )}
+          </form>
+        )}
+
+        {stage === "code" && (
+          <form onSubmit={handleVerifyCode}>
+            <label style={{ display: "block", fontWeight: 700, marginBottom: 6 }}>Kode Unik Admin</label>
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              inputMode="numeric"
+              placeholder="309309"
+              required
+              style={{ width: "100%", padding: 10, borderRadius: 12, border: "1px solid #d1d5db" }}
+            />
+
+            <button
+              disabled={busy}
+              type="submit"
+              style={{
+                marginTop: 10,
+                width: "100%",
+                padding: 10,
+                borderRadius: 12,
+                border: "none",
+                background: "#16a34a",
+                color: "white",
+                fontWeight: 900,
+                cursor: "pointer",
+                opacity: busy ? 0.7 : 1,
+              }}
+            >
+              {busy ? "Memproses..." : "Verifikasi & Masuk"}
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

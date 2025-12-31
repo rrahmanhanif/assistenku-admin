@@ -1,15 +1,42 @@
 // src/lib/firebaseAdmin.js
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { firebaseApp } from "../../config/firebase.js";
+import {
+  getAuth,
+  browserLocalPersistence,
+  setPersistence,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
+  signOut,
+} from "firebase/auth";
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
+export const auth = getAuth(firebaseApp);
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+export async function initAuthPersistence() {
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+  } catch {
+    // ignore
+  }
+}
+
+export async function sendAdminEmailLink(email) {
+  const actionCodeSettings = {
+    url: `${window.location.origin}/`, // kembali ke root untuk menyelesaikan sign-in
+    handleCodeInApp: true,
+  };
+  return sendSignInLinkToEmail(auth, email, actionCodeSettings);
+}
+
+export function isEmailLink(url) {
+  return isSignInWithEmailLink(auth, url);
+}
+
+export async function completeEmailLinkSignIn(email, url) {
+  const result = await signInWithEmailLink(auth, email, url);
+  return result.user;
+}
+
+export async function signOutAdmin() {
+  await signOut(auth);
+}

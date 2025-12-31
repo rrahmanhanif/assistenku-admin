@@ -2,33 +2,52 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { clearAdminSession } from "../lib/adminSession";
+import { signOutAdmin } from "../lib/firebaseAdmin";
 import BrainPanel from "../components/BrainPanel";
+import InstallPwaButton from "../components/InstallPwaButton";
 
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     clearAdminSession();
-    navigate("/admin-login", { replace: true });
+    try {
+      await signOutAdmin();
+    } catch {
+      // ignore
+    }
+    navigate("/", { replace: true });
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-start justify-between gap-4">
+    <div style={{ padding: 18 }}>
+      <InstallPwaButton />
+
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
         <div>
-          <h1 className="text-3xl font-semibold">Dashboard</h1>
-          <p className="text-slate-600 mt-2">Selamat datang di panel admin Assistenku.</p>
+          <h1 style={{ fontSize: 28, fontWeight: 900 }}>Dashboard Admin</h1>
+          <div style={{ opacity: 0.75, marginTop: 6 }}>Selamat datang di panel admin Assistenku.</div>
         </div>
 
         <button
           onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+          style={{
+            padding: "10px 12px",
+            borderRadius: 12,
+            border: "none",
+            background: "#dc2626",
+            color: "white",
+            fontWeight: 900,
+            cursor: "pointer",
+          }}
         >
           Logout
         </button>
       </div>
 
-      <BrainPanel />
+      <div style={{ marginTop: 14 }}>
+        <BrainPanel />
+      </div>
     </div>
   );
 }

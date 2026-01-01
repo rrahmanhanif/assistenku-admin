@@ -20,3 +20,8 @@
     "vitest": "^2.0.5"
   }
 }
+{
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}

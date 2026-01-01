@@ -1,154 +1,127 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useMemo, useState } from "react";
+import { sendSignInLinkToEmail } from "firebase/auth";
+import { getFirebaseAuth } from "../lib/firebase.js";
+import InstallPwaButton from "../components/InstallPwaButton.jsx";
 
-// NOTE:
-// - Tombol ini hanya UI.
-// - Anda tinggal sambungkan handler "handleLogin()" ke flow Firebase email-link + verify code.
-// - Saya buat tetap ada input code 309309 (karena requirement Anda), tapi UI tetap simpel.
+const ALLOWED_EMAILS = ["kontakassistenku@gmail.com", "appassistenku@gmail.com"];
 
 export default function AdminLogin() {
-  const navigate = useNavigate();
+  const auth = useMemo(() => getFirebaseAuth(), []);
   const [email, setEmail] = useState("kontakassistenku@gmail.com");
-  const [code, setCode] = useState("309309");
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState("");
+  const [code, setCode] = useState("");
+  const [status, setStatus] = useState({ kind: "idle", message: "" });
 
-  async function handleLogin() {
-    setLoading(true);
-    setMsg("");
-
+  async function handleSendLink() {
     try {
-      // TODO: Integrasikan:
-      // 1) sendSignInLinkToEmail(email)
-      // 2) setelah user klik link, verify token + kirim { code } ke /api/admin/auth/verify
-      //
-      // Untuk sementara: simulasi sukses
-      await new Promise((r) => setTimeout(r, 400));
+      const normalized = String(email || "").trim().toLowerCase();
+      if (!ALLOWED_EMAILS.includes(normalized)) {
+        throw new Error("Email tidak diizinkan. Hanya kontakassistenku@gmail.com & appassistenku@gmail.com.");
+      }
+      if (!code) throw new Error("Kode unik wajib diisi.");
+      if (code !== "309309") throw new Error("Kode unik salah.");
 
-      // Jika Anda sudah punya session flag internal, set di sini.
-      // localStorage.setItem("assistenku_admin_logged_in", "1");
+      // simpan untuk finish flow
+      localStorage.setItem("assistenku_login_email", normalized);
+      localStorage.setItem("assistenku_login_code", code);
 
-      navigate("/dashboard");
+      const actionCodeSettings = {
+        url: `${window.location.origin}/auth/finish`,
+        handleCodeInApp: true,
+      };
+
+      setStatus({ kind: "loading", message: "Mengirim link login ke email..." });
+      await sendSignInLinkToEmail(auth, normalized, actionCodeSettings);
+      setStatus({
+        kind: "sent",
+        message: "Link login sudah dikirim. Silakan cek Inbox/Spam, lalu klik link tersebut untuk menyelesaikan login.",
+      });
     } catch (e) {
-      setMsg(e?.message || "Gagal login");
-    } finally {
-      setLoading(false);
+      setStatus({ kind: "error", message: e.message || "Gagal mengirim link." });
     }
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "grid",
-        placeItems: "center",
-        padding: 16
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 520,
-          background: "rgba(255,255,255,0.10)",
-          border: "1px solid rgba(255,255,255,0.18)",
-          borderRadius: 20,
-          padding: 18,
-          boxShadow: "0 16px 60px rgba(0,0,0,0.35)",
-          backdropFilter: "blur(10px)"
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 14,
-              background: "rgba(255,255,255,0.16)",
-              display: "grid",
-              placeItems: "center",
-              fontWeight: 900
-            }}
-          >
-            A
-          </div>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 900 }}>Assistenku Admin</div>
-            <div style={{ opacity: 0.85, fontSize: 13 }}>Login khusus admin (whitelist + kode unik)</div>
-          </div>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg,#061a4a,#0b5fff)", padding: 18 }}>
+      <div style={{ maxWidth: 520, margin: "0 auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div style={{ color: "white", fontWeight: 900, fontSize: 18 }}>Assistenku Admin</div>
+          <InstallPwaButton />
         </div>
 
         <div
           style={{
-            background: "rgba(255,255,255,0.08)",
-            border: "1px solid rgba(255,255,255,0.14)",
-            borderRadius: 16,
-            padding: 14
+            background: "rgba(255,255,255,0.10)",
+            border: "1px solid rgba(255,255,255,0.18)",
+            borderRadius: 18,
+            padding: 16,
+            color: "white",
+            boxShadow: "0 18px 40px rgba(0,0,0,0.35)",
           }}
         >
-          <label style={{ fontSize: 12, opacity: 0.9 }}>Email Admin</label>
+          <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 10 }}>Login Admin</div>
+
+          <label style={{ display: "block", fontSize: 12, opacity: 0.95, marginBottom: 6 }}>Email Admin</label>
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="kontakassistenku@gmail.com"
             style={{
               width: "100%",
-              marginTop: 6,
-              marginBottom: 12,
               padding: "12px 12px",
-              borderRadius: 14,
-              border: "1px solid rgba(255,255,255,0.18)",
-              background: "rgba(0,0,0,0.18)",
-              color: "#fff",
-              outline: "none"
+              borderRadius: 12,
+              border: "1px solid rgba(255,255,255,0.25)",
+              outline: "none",
+              background: "rgba(0,0,0,0.25)",
+              color: "white",
+              marginBottom: 12,
             }}
           />
 
-          <label style={{ fontSize: 12, opacity: 0.9 }}>Kode Unik</label>
+          <label style={{ display: "block", fontSize: 12, opacity: 0.95, marginBottom: 6 }}>Kode Unik</label>
           <input
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            placeholder="309309"
             inputMode="numeric"
+            placeholder="309309"
             style={{
               width: "100%",
-              marginTop: 6,
-              marginBottom: 14,
               padding: "12px 12px",
-              borderRadius: 14,
-              border: "1px solid rgba(255,255,255,0.18)",
-              background: "rgba(0,0,0,0.18)",
-              color: "#fff",
-              outline: "none"
+              borderRadius: 12,
+              border: "1px solid rgba(255,255,255,0.25)",
+              outline: "none",
+              background: "rgba(0,0,0,0.25)",
+              color: "white",
+              marginBottom: 14,
             }}
           />
 
           <button
-            onClick={handleLogin}
-            disabled={loading}
+            onClick={handleSendLink}
+            disabled={status.kind === "loading"}
             style={{
               width: "100%",
               padding: "12px 14px",
-              borderRadius: 16,
+              borderRadius: 12,
               border: "none",
-              cursor: loading ? "not-allowed" : "pointer",
-              background: "linear-gradient(90deg, #0b5fff, #0a4fe0)",
-              color: "#fff",
+              background: "white",
+              color: "#0b2d7a",
               fontWeight: 900,
-              boxShadow: "0 14px 30px rgba(11,95,255,0.35)"
+              cursor: "pointer",
             }}
           >
-            {loading ? "Memproses..." : "Login Admin"}
+            Kirim Link Login (Firebase)
           </button>
 
-          {msg ? (
-            <div style={{ marginTop: 12, fontSize: 13, color: "#fff" }}>
-              {msg}
+          {status.kind !== "idle" && (
+            <div style={{ marginTop: 12, fontSize: 13, opacity: 0.95 }}>
+              {status.kind === "error" ? "Error: " : ""}
+              {status.message}
             </div>
-          ) : null}
+          )}
         </div>
 
-        <div style={{ marginTop: 12, fontSize: 12, opacity: 0.85, lineHeight: 1.5 }}>
-          Login hanya untuk email whitelist: <b>kontakassistenku@gmail.com</b> dan <b>appassistenku@gmail.com</b>.
+        <div style={{ marginTop: 12, color: "rgba(255,255,255,0.85)", fontSize: 12, lineHeight: 1.5 }}>
+          Catatan: Link login hanya dapat terkirim jika Firebase Auth (Email link/passwordless) aktif dan domain admin.assistenku.com ada di Authorized domains.
         </div>
       </div>
     </div>

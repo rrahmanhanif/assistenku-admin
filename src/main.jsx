@@ -1,41 +1,19 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import "./index.css";
-import { registerSW } from "./pwa/registerSW.js";
-
-import AdminLogin from "./pages/AdminLogin.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
-import Portal from "./pages/Portal.jsx";
-import RequireAdmin from "./components/RequireAdmin.jsx";
-
-registerSW();
+import { BrowserRouter } from "react-router-dom";
+import App from "./App.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<AdminLogin />} />
-
-      <Route
-        path="/dashboard"
-        element={
-          <RequireAdmin>
-            <Dashboard />
-          </RequireAdmin>
-        }
-      />
-
-      <Route
-        path="/portal"
-        element={
-          <RequireAdmin>
-            <Portal />
-          </RequireAdmin>
-        }
-      />
-
-      <Route path="*" element={<h1>404 Not Found</h1>} />
-    </Routes>
-  </BrowserRouter>
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>,
 );
+
+// Register SW for PWA install eligibility
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}

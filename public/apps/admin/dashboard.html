@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Assistenku Admin - Dashboard</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icons/icon-192.png" />
+  <link rel="stylesheet" href="/apps/admin/assets/app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Assistenku Admin</div>
+    <div class="user-info">
+      <div><strong>User:</strong> <span data-user-email>-</span></div>
+      <div><strong>Session:</strong> <span data-session-status class="badge info">Memeriksa...</span></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar">
+      <a href="/admin/dashboard.html">Dashboard</a>
+      <a href="/admin/master-layanan.html">Master Layanan</a>
+      <a href="/admin/master-mitra.html">Master Mitra</a>
+      <a href="/admin/master-customer.html">Master Customer</a>
+      <a href="/admin/orders.html">Orders</a>
+      <a href="/admin/finance.html">Finance</a>
+      <a href="/admin/settings.html">Settings</a>
+      <a href="#" data-logout>Logout</a>
+    </nav>
+
+    <main class="content">
+      <div class="grid cols-2">
+        <div class="card">
+          <h2>Status Login</h2>
+          <p>Email: <strong data-user-email>-</strong></p>
+          <p>Status sesi: <span data-session-status class="badge info">Memeriksa...</span></p>
+          <pre
+            style="background:#0f172a; color:#e2e8f0; padding:0.75rem; border-radius:8px; overflow:auto;"
+            data-session-json
+          >
+Menunggu data sesi...
+          </pre>
+        </div>
+
+        <div class="card">
+          <h2>Checklist Akses</h2>
+          <ul style="color: var(--muted); line-height: 1.6;">
+            <li>Gunakan akun <strong>kontakassistenku@gmail.com</strong> untuk akses admin.</li>
+            <li>Kode admin default: <strong>309309</strong> (bisa diubah via env).</li>
+            <li>Pastikan cookie sesi tersimpan setelah verifikasi.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Ringkasan</h2>
+        <p style="color: var(--muted);">
+          Integrasi data akan ditambahkan. Halaman ini memastikan UI dan sesi sudah aktif.
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { requireSession } from "/apps/admin/assets/auth.js";
+    import "/apps/admin/assets/app.js";
+
+    requireSession()?.then((session) => {
+      const jsonBox = document.querySelector("[data-session-json]");
+      if (jsonBox) {
+        jsonBox.textContent = JSON.stringify(session, null, 2);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Settings</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icons/icon-192.png" />
+  <link rel="stylesheet" href="/apps/admin/assets/app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Assistenku Admin</div>
+    <div class="user-info">
+      <div><strong>User:</strong> <span data-user-email>-</span></div>
+      <div><strong>Session:</strong> <span data-session-status class="badge info">Memeriksa...</span></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar">
+      <a href="/admin/dashboard.html">Dashboard</a>
+      <a href="/admin/master-layanan.html">Master Layanan</a>
+      <a href="/admin/master-mitra.html">Master Mitra</a>
+      <a href="/admin/master-customer.html">Master Customer</a>
+      <a href="/admin/orders.html">Orders</a>
+      <a href="/admin/finance.html">Finance</a>
+      <a href="/admin/settings.html">Settings</a>
+      <a href="#" data-logout>Logout</a>
+    </nav>
+
+    <main class="content">
+      <div class="card">
+        <h2>Settings</h2>
+        <p style="color: var(--muted);">Informasi akun dan kontrol sesi.</p>
+
+        <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+          <div><strong>Email:</strong> <span data-user-email>-</span></div>
+          <div><strong>Status sesi:</strong> <span data-session-status class="badge info">Memeriksa...</span></div>
+          <button class="button secondary" data-logout>Logout</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { requireSession } from "/apps/admin/assets/auth.js";
+    import "/apps/admin/assets/app.js";
+    requireSession();
+  </script>
+</body>
+</html>

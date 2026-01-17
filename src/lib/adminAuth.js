@@ -1,46 +1,93 @@
 // src/lib/adminAuth.js
-import { auth } from "../firebase";
+import { firebaseApp } from "../../config/firebase.js";
 import {
-  sendSignInLinkToEmail,
-  isSignInWithEmailLink,
-  signInWithEmailLink,
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  signOut
 } from "firebase/auth";
+import {
+  clearAdminSession,
+  getAdminSession,
+  isTokenExpired,
+  saveAdminSession
+} from "./adminSession.js";
 
 const ADMIN_ALLOWED_EMAILS = [
   "kontakassistenku@gmail.com",
-  "appassistenku@gmail.com",
+  "appassistenku@gmail.com"
 ];
 
-export async function sendAdminEmailLink(email, adminCode) {
-  const normalized = String(email || "").trim().toLowerCase();
+const provider = new GoogleAuthProvider();
+provider.setCustomParameters({ prompt: "select_account" });
 
-  if (!ADMIN_ALLOWED_EMAILS.includes(normalized)) {
-    throw new Error("Email tidak diizinkan untuk Admin.");
-  }
-  if (String(adminCode) !== "309309") {
-    throw new Error("Kode unik Admin salah.");
-  }
-
-  localStorage.setItem("assistenku_admin_email", normalized);
-
-  const actionCodeSettings = {
-    url: `${window.location.origin}/auth/finish`,
-    handleCodeInApp: true,
-  };
-
-  await sendSignInLinkToEmail(auth, normalized, actionCodeSettings);
+export function getAdminAuth() {
+  return getAuth(firebaseApp);
 }
 
-export async function completeAdminEmailLinkSignIn() {
-  if (!isSignInWithEmailLink(auth, window.location.href)) {
-    throw new Error("Link login tidak valid (bukan email-link Firebase).");
+function assertAllowedEmail(email) {
+  const normalized = String(email || "").trim().toLowerCase();
+  if (!ADMIN_ALLOWED_EMAILS.includes(normalized)) {
+    throw new Error("Email tidak diizinkan. Pastikan akun Google terdaftar di allowlist admin.");
+  }
+  return normalized;
+}
+
+async function persistSession(user) {
+  const email = assertAllowedEmail(user?.email);
+  const tokenResult = await user.getIdTokenResult(true);
+
+  saveAdminSession({
+    uid: user.uid,
+    email,
+    token: tokenResult.token,
+    expiresAt: tokenResult.expirationTime
+  });
+
+  return tokenResult.token;
+}
+
+export async function signInWithGooglePopup() {
+  const auth = getAdminAuth();
+  const result = await signInWithPopup(auth, provider);
+  return persistSession(result.user);
+}
+
+export async function signInWithGoogleRedirect() {
+  const auth = getAdminAuth();
+  await signInWithRedirect(auth, provider);
+}
+
+export async function handleGoogleRedirect() {
+  const auth = getAdminAuth();
+  const result = await getRedirectResult(auth);
+  if (!result?.user) return null;
+  return persistSession(result.user);
+}
+
+export async function refreshAdminToken() {
+  const auth = getAdminAuth();
+  const user = auth.currentUser;
+  if (!user) return null;
+  return persistSession(user);
+}
+
+export async function logoutAdmin() {
+  clearAdminSession();
+  const auth = getAdminAuth();
+  await signOut(auth);
+}
+
+export async function enforceAdminSession() {
+  const session = getAdminSession();
+  if (!session?.token) return false;
+
+  if (isTokenExpired(session.expiresAt)) {
+    await logoutAdmin();
+    return false;
   }
 
-  const email = localStorage.getItem("assistenku_admin_email");
-  if (!email) {
-    throw new Error("Email admin tidak tersimpan. Ulangi dari halaman login.");
-  }
-
-  await signInWithEmailLink(auth, email, window.location.href);
-  return await auth.currentUser.getIdToken(true);
+  return true;
 }

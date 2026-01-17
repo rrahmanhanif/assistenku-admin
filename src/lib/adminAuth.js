@@ -27,15 +27,34 @@ export function getAdminAuth() {
   return getAuth(firebaseApp);
 }
 
+function normalizeEmail(email) {
+  return String(email || "").trim().toLowerCase();
+}
+
+function isAllowedEmail(email) {
+  return ADMIN_ALLOWED_EMAILS.includes(normalizeEmail(email));
+}
+
+async function handleDeniedAccess() {
+  clearAdminSession();
+  const auth = getAdminAuth();
+  await signOut(auth);
+}
+
 function assertAllowedEmail(email) {
-  const normalized = String(email || "").trim().toLowerCase();
+  const normalized = normalizeEmail(email);
   if (!ADMIN_ALLOWED_EMAILS.includes(normalized)) {
-    throw new Error("Email tidak diizinkan. Pastikan akun Google terdaftar di allowlist admin.");
+    throw new Error("Access Denied");
   }
   return normalized;
 }
 
 async function persistSession(user) {
+  if (!isAllowedEmail(user?.email)) {
+    await handleDeniedAccess();
+    throw new Error("Access Denied");
+  }
+
   const email = assertAllowedEmail(user?.email);
   const tokenResult = await user.getIdTokenResult(true);
 
@@ -83,6 +102,11 @@ export async function logoutAdmin() {
 export async function enforceAdminSession() {
   const session = getAdminSession();
   if (!session?.token) return false;
+
+  if (!isAllowedEmail(session.email)) {
+    await handleDeniedAccess();
+    return false;
+  }
 
   if (isTokenExpired(session.expiresAt)) {
     await logoutAdmin();

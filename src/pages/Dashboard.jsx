@@ -5,6 +5,7 @@ import { enforceAdminSession, logoutAdmin } from "../lib/adminAuth.js";
 import { getAdminSession } from "../lib/adminSession.js";
 
 const STATUS_FIELDS = ["status", "state", "verificationStatus", "orderStatus", "paymentStatus"];
+const SERVICE_FIELDS = ["service", "serviceName", "serviceType", "serviceId", "serviceCode"];
 const MITRA_ID_FIELDS = ["id", "mitraId", "partnerId", "uid"];
 
 function extractList(payload) {
@@ -17,6 +18,13 @@ function extractList(payload) {
 
 function getStatusValue(row) {
   for (const field of STATUS_FIELDS) {
+    if (row?.[field]) return String(row[field]);
+  }
+  return "";
+}
+
+function getServiceValue(row) {
+  for (const field of SERVICE_FIELDS) {
     if (row?.[field]) return String(row[field]);
   }
   return "";
@@ -154,6 +162,41 @@ function StatusFilter({ rows, value, onChange }) {
   );
 }
 
+function ServiceFilter({ rows, value, onChange }) {
+  const options = useMemo(() => {
+    const set = new Set();
+    rows.forEach((row) => {
+      const service = getServiceValue(row);
+      if (service) set.add(service);
+    });
+    return Array.from(set);
+  }, [rows]);
+
+  if (!options.length) return null;
+
+  return (
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      style={{
+        background: "rgba(255,255,255,0.12)",
+        border: "1px solid rgba(255,255,255,0.2)",
+        color: "white",
+        padding: "8px 10px",
+        borderRadius: 8,
+        fontSize: 12
+      }}
+    >
+      <option value="">Semua Layanan</option>
+      {options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 export default function Dashboard() {
   const nav = useNavigate();
   const session = getAdminSession();
@@ -170,6 +213,7 @@ export default function Dashboard() {
   const [serviceFilter, setServiceFilter] = useState("");
   const [pricingFilter, setPricingFilter] = useState("");
   const [orderFilter, setOrderFilter] = useState("");
+  const [orderServiceFilter, setOrderServiceFilter] = useState("");
   const [ledgerFilter, setLedgerFilter] = useState("");
   const [auditFilter, setAuditFilter] = useState("");
   const [mitraFilter, setMitraFilter] = useState("");
@@ -233,7 +277,7 @@ export default function Dashboard() {
 
     try {
       setMitraState((prev) => ({ ...prev, status: "loading", error: "" }));
-      await adminPost("/assistenku/admin/mitra", { id: mitraId, status: nextStatus });
+      await adminPost("/assistenku/admin/verify-mitra", { id: mitraId, status: nextStatus });
       await loadList("/assistenku/admin/mitra", setMitraState);
     } catch (error) {
       setMitraState((prev) => ({
@@ -249,9 +293,17 @@ export default function Dashboard() {
     return items.filter((row) => getStatusValue(row) === filter);
   }
 
+  function applyServiceFilter(items, filter) {
+    if (!filter) return items;
+    return items.filter((row) => getServiceValue(row) === filter);
+  }
+
   const filteredServices = applyStatusFilter(servicesState.items, serviceFilter);
   const filteredPricing = applyStatusFilter(pricingState.items, pricingFilter);
-  const filteredOrders = applyStatusFilter(ordersState.items, orderFilter);
+  const filteredOrders = applyServiceFilter(
+    applyStatusFilter(ordersState.items, orderFilter),
+    orderServiceFilter
+  );
   const filteredLedger = applyStatusFilter(ledgerState.items, ledgerFilter);
   const filteredAudit = applyStatusFilter(auditState.items, auditFilter);
   const filteredMitra = applyStatusFilter(mitraState.items, mitraFilter);
@@ -395,7 +447,14 @@ export default function Dashboard() {
               loading={ordersState.status === "loading"}
             />
             <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-              <StatusFilter rows={ordersState.items} value={orderFilter} onChange={setOrderFilter} />
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <StatusFilter rows={ordersState.items} value={orderFilter} onChange={setOrderFilter} />
+                <ServiceFilter
+                  rows={ordersState.items}
+                  value={orderServiceFilter}
+                  onChange={setOrderServiceFilter}
+                />
+              </div>
               <div style={{ fontSize: 12, opacity: 0.7 }}>Endpoint: GET /assistenku/admin/orders</div>
             </div>
             {ordersState.error && <div style={{ marginTop: 8, color: "#ffb3b3" }}>{ordersState.error}</div>}
@@ -447,7 +506,9 @@ export default function Dashboard() {
             />
             <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
               <StatusFilter rows={mitraState.items} value={mitraFilter} onChange={setMitraFilter} />
-              <div style={{ fontSize: 12, opacity: 0.7 }}>Endpoint: GET /assistenku/admin/mitra</div>
+              <div style={{ fontSize: 12, opacity: 0.7 }}>
+                Endpoint: GET /assistenku/admin/mitra | POST /assistenku/admin/verify-mitra
+              </div>
             </div>
             {mitraState.error && <div style={{ marginTop: 8, color: "#ffb3b3" }}>{mitraState.error}</div>}
             <div style={{ marginTop: 12 }}>

@@ -21,9 +21,13 @@ export default function AdminLogin() {
           nav("/");
         }
       } catch (error) {
+        const message = error?.message === "Access Denied"
+          ? "Access Denied"
+          : error?.message || "Login redirect gagal. Silakan coba lagi.";
+
         setStatus({
           kind: "error",
-          message: error?.message || "Login redirect gagal. Silakan coba lagi."
+          message
         });
       }
     })();
@@ -47,9 +51,12 @@ export default function AdminLogin() {
         return;
       }
 
+      const message = error?.message === "Access Denied"
+        ? "Access Denied"
+        : error?.message || "Login Google gagal.";
       setStatus({
         kind: "error",
-        message: error?.message || "Login Google gagal."
+        message
       });
     }
   }

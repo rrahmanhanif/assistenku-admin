@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { approveWithdraw } from "../lib/withdrawAdmin";
+import { endpoints } from "../services/http/endpoints";
+import { httpClient } from "../services/http/httpClient";
 
 export default function WithdrawAdmin() {
   const [data, setData] = useState([]);
 
   const load = async () => {
-    const res = await fetch("/api/withdraw/list");
-    const json = await res.json();
+    const { data: json } = await httpClient.request({
+      endpoint: endpoints.withdraw.list
+    });
     setData(json);
   };
 
@@ -32,8 +35,10 @@ export default function WithdrawAdmin() {
           <p>Rek: {w.bank_number}</p>
           <p>Status: {w.status}</p>
 
-          {w.status === "pending" && (
-            <button onClick={() => confirm(w.id)}>Approve</button>
+          {w.status !== "approved" && (
+            <button onClick={() => confirm(w.id)} style={{ padding: "8px 12px", cursor: "pointer" }}>
+              Approve
+            </button>
           )}
         </div>
       ))}

@@ -1,88 +1,74 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import MonitoringDashboard from "../components/MonitoringDashboard";
-import { fetchMonitoringStatus } from "../services/monitoring";
-import Navbar from "../components/Navbar";
+// src/services/monitoring.js
+// Service untuk mengambil data status layanan mitra & customer
 
-export default function Monitoring() {
-  const [data, setData] = useState({ partners: [], customers: [] });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [filter, setFilter] = useState("all");
-  const [search, setSearch] = useState("");
-  const lastAlerted = useRef([]);
+import { endpoints } from "../services/http/endpoints";
+import { httpClient } from "../services/http/httpClient";
 
-  const services = useMemo(
-    () => [
-      ...data.partners.map((item) => ({ ...item, type: "Mitra" })),
-      ...data.customers.map((item) => ({ ...item, type: "Customer" })),
+const BASE_URL = import.meta.env.VITE_MONITORING_API_URL;
+
+async function fetchJson(endpoint, init = {}) {
+  const { data } = await httpClient.request({
+    endpoint,
+    baseUrl: BASE_URL,
+    includeAuth: false,
+    ...init
+  });
+  return data;
+}
+
+function buildMockData() {
+  const now = new Date();
+  const isoNow = now.toISOString();
+
+  return {
+    partners: [
+      {
+        id: "mitra-1",
+        name: "Mitra Jakarta",
+        status: "healthy",
+        uptime: 99.92,
+        latency: 180,
+        lastDowntime: isoNow,
+      },
+      {
+        id: "mitra-2",
+        name: "Mitra Bandung",
+        status: "degraded",
+        uptime: 98.4,
+        latency: 460,
+        lastDowntime: isoNow,
+      },
     ],
-    [data]
-  );
-
-  const loadData = async (opts = { useMock: false }) => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const result = await fetchMonitoringStatus(opts);
-      setData(result);
-    } catch (e) {
-      setError(e.message || "Gagal memuat data monitoring");
-
-      if (!opts.useMock) {
-        try {
-          const fallback = await fetchMonitoringStatus({ useMock: true });
-          setData(fallback);
-        } catch (mockError) {
-          console.error("Gagal memuat mock monitoring:", mockError);
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
+    customers: [
+      {
+        id: "cust-1",
+        name: "Customer App - Android",
+        status: "healthy",
+        uptime: 99.8,
+        latency: 210,
+        lastDowntime: isoNow,
+      },
+      {
+        id: "cust-2",
+        name: "Customer App - iOS",
+        status: "down",
+        uptime: 95.1,
+        latency: 0,
+        lastDowntime: isoNow,
+      },
+    ],
   };
+}
 
-  useEffect(() => {
-    loadData({ useMock: true });
-  }, []);
+export async function fetchMonitoringStatus({ signal, useMock = false } = {}) {
+  if (useMock || !BASE_URL) {
+    return buildMockData();
+  }
 
-  useEffect(() => {
-    if (error) {
-      alert(error);
-    }
-  }, [error]);
+  const [partners, customers] = await Promise.all([
+    fetchJson(endpoints.monitoring.partnersStatus, { signal }),
+    fetchJson(endpoints.monitoring.customersStatus, { signal }),
+  ]);
 
-  useEffect(() => {
-    const downServices = services.filter((s) => s.status === "down");
-    const ids = downServices.map((s) => s.id).sort();
-    const lastIds = lastAlerted.current.join(",");
-    const newIds = ids.join(",");
-
-    if (downServices.length && newIds !== lastIds) {
-      alert(
-        `Ada layanan down: ${downServices
-          .map((s) => `${s.name} (${s.type})`)
-          .join(", ")}`
-      );
-      lastAlerted.current = ids;
-    }
-  }, [services]);
-
-  return (
-    <div className="bg-gray-50 min-h-screen">
-      <Navbar />
-      <div className="p-6">
-        <MonitoringDashboard
-          data={data}
-          loading={loading}
-          error={error}
-          onRetry={() => loadData()}
-          filter={filter}
-          onFilterChange={setFilter}
-          search={search}
-          onSearchChange={setSearch}
-        />
-      </div>
-    </div>
-  );
+  return { partners, customers };
 }

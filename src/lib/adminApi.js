@@ -4,15 +4,8 @@ import {
   getAdminToken,
   isTokenExpired
 } from "./adminSession.js";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-function requireApiBaseUrl() {
-  if (!API_BASE_URL) {
-    throw new Error("VITE_API_BASE_URL belum diset.");
-  }
-  return API_BASE_URL;
-}
+import { httpClient } from "../services/http/httpClient.js";
+import { resolveBaseUrl } from "../services/http/baseUrl.js";
 
 async function resolveToken() {
   const session = getAdminSession();
@@ -31,7 +24,6 @@ async function resolveToken() {
 }
 
 export async function adminFetch(path, options = {}) {
-  const baseUrl = requireApiBaseUrl();
   const token = await resolveToken();
 
   if (!token) {
@@ -46,28 +38,34 @@ export async function adminFetch(path, options = {}) {
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(`${baseUrl}${path}`, {
-    ...options,
-    headers
-  });
+  try {
+    const { data, response } = await httpClient.request({
+      endpoint: path,
+      method: options.method || "GET",
+      headers,
+      body: options.body,
+      baseUrl: resolveBaseUrl(),
+    });
 
-  if (response.status === 401 || response.status === 403) {
-    await logoutAdmin();
-    throw new Error("Akses ditolak. Silakan login ulang sebagai ADMIN.");
+    return { data, response };
+  } catch (error) {
+    if (error?.status === 401 || error?.status === 403) {
+      await logoutAdmin();
+      throw new Error("Akses ditolak. Silakan login ulang sebagai ADMIN.");
+    }
+    throw error;
   }
-
-  return response;
 }
 
 export async function adminGet(path) {
-  const response = await adminFetch(path, { method: "GET" });
-  return response.json();
+  const { data } = await adminFetch(path, { method: "GET" });
+  return data;
 }
 
 export async function adminPost(path, body) {
-  const response = await adminFetch(path, {
+  const { data } = await adminFetch(path, {
     method: "POST",
-    body: JSON.stringify(body ?? {})
+    body: body ?? {},
   });
-  return response.json();
+  return data;
 }

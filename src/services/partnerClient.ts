@@ -3,6 +3,8 @@ import { logError } from "../core/logger";
 import { db } from "../firebase";
 import { supabase } from "../lib/supabaseClient";
 import { env } from "../../config/env";
+import { endpoints } from "./http/endpoints";
+import { httpClient } from "./http/httpClient";
 
 type PartnerSource = "firestore" | "supabase" | "api";
 
@@ -28,13 +30,10 @@ const RETRY_DELAY = 400;
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function withRetry<T>(
-  fn: () => Promise<T>,
-  location: string
-): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, location: string): Promise<T> {
   let lastError: unknown;
 
-  for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
+  for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt += 1) {
     try {
       return await fn();
     } catch (error) {
@@ -57,33 +56,21 @@ const buildAuthHeaders = () =>
       }
     : {};
 
-function normalizePartner(
-  partner: Record<string, any>,
-  source: PartnerSource
-): PartnerRecord {
+function normalizePartner(partner: Record<string, any>, source: PartnerSource): PartnerRecord {
   return {
-    id: partner.id || partner.uid || partner.mitra_id || "unknown",
-    name:
-      partner.name ||
-      partner.full_name ||
-      partner.fullName ||
-      "Tanpa Nama",
-    email: partner.email || partner.contact_email,
-    phone: partner.phone || partner.phone_number,
-    status: partner.status || partner.availability || "offline",
-    joinedAt:
-      partner.joined_at ||
-      partner.created_at ||
-      partner.createdAt ||
-      partner.updatedAt ||
-      null,
+    id: String(partner.id || partner.uid || partner.mitra_id || "unknown"),
+    name: String(
+      partner.name || partner.full_name || partner.fullName || partner.nama || "Tanpa Nama"
+    ),
+    email: partner.email ? String(partner.email) : partner.contact_email ? String(partner.contact_email) : undefined,
+    phone: partner.phone ? String(partner.phone) : partner.phone_number ? String(partner.phone_number) : undefined,
+    status: partner.status ? String(partner.status) : partner.availability ? String(partner.availability) : "offline",
+    joinedAt: partner.joined_at || partner.created_at || partner.createdAt || partner.updatedAt || null,
     source,
   };
 }
 
-function normalizePartnerMetric(
-  orderRows: any[] = []
-): PartnerMetric {
+function normalizePartnerMetric(orderRows: any[] = []): PartnerMetric {
   return orderRows.reduce(
     (acc, row) => {
       acc.totalOrders += 1;
@@ -105,7 +92,7 @@ function normalizePartnerMetric(
       totalOrders: 0,
       totalSpending: 0,
       totalMitraRevenue: 0,
-      lastOrderAt: null,
+      lastOrderAt: null as string | null,
     }
   );
 }
@@ -114,23 +101,17 @@ async function fetchPartnerApi(): Promise<PartnerRecord[]> {
   if (!env.partnerApiUrl) return [];
 
   return withRetry(async () => {
-    const res = await fetch(`${env.partnerApiUrl}/partners`, {
+    const { data: payload } = await httpClient.request({
+      endpoint: endpoints.partner.list,
+      baseUrl: env.partnerApiUrl,
+      includeAuth: false,
       headers: {
         "Content-Type": "application/json",
         ...buildAuthHeaders(),
       },
     });
 
-    if (!res.ok) {
-      throw new Error(
-        `Gagal memuat data mitra API (${res.status})`
-      );
-    }
-
-    const payload = await res.json();
-    const list = Array.isArray(payload?.data)
-      ? payload.data
-      : payload;
+    const list = Array.isArray((payload as any)?.data) ? (payload as any).data : payload;
 
     if (!Array.isArray(list)) return [];
 
@@ -141,15 +122,13 @@ async function fetchPartnerApi(): Promise<PartnerRecord[]> {
 async function fetchPartnerFirestore(): Promise<PartnerRecord[]> {
   return withRetry(async () => {
     const snapshot = await getDocs(collection(db, "mitra"));
-    return snapshot.docs.map((doc) =>
-      normalizePartner({ id: doc.id, ...doc.data() }, "firestore")
+    return snapshot.docs.map((docSnap) =>
+      normalizePartner({ id: docSnap.id, ...docSnap.data() }, "firestore")
     );
   }, "PartnerClient.fetchPartnerFirestore");
 }
 
-async function fetchOrderMetrics(
-  mitraIds: string[]
-): Promise<Record<string, PartnerMetric>> {
+async function fetchOrderMetrics(mitraIds: string[]): Promise<Record<string, PartnerMetric>> {
   if (!mitraIds.length) return {};
 
   return withRetry(async () => {
@@ -163,18 +142,13 @@ async function fetchOrderMetrics(
     const grouped: Record<string, any[]> = {};
     data?.forEach((row) => {
       if (!row.mitra_id) return;
-      grouped[row.mitra_id] = grouped[row.mitra_id]
-        ? [...grouped[row.mitra_id], row]
-        : [row];
+      grouped[row.mitra_id] = grouped[row.mitra_id] ? [...grouped[row.mitra_id], row] : [row];
     });
 
-    return Object.entries(grouped).reduce(
-      (acc, [mitraId, rows]) => {
-        acc[mitraId] = normalizePartnerMetric(rows);
-        return acc;
-      },
-      {} as Record<string, PartnerMetric>
-    );
+    return Object.entries(grouped).reduce((acc, [mitraId, rows]) => {
+      acc[mitraId] = normalizePartnerMetric(rows);
+      return acc;
+    }, {} as Record<string, PartnerMetric>);
   }, "PartnerClient.fetchOrderMetrics");
 }
 
@@ -186,13 +160,10 @@ export async function fetchPartnersWithAnalytics() {
 
   const combined = [...firestorePartners, ...apiPartners];
 
-  const unique = combined.reduce<Record<string, PartnerRecord>>(
-    (acc, partner) => {
-      acc[partner.id] = partner;
-      return acc;
-    },
-    {}
-  );
+  const unique = combined.reduce<Record<string, PartnerRecord>>((acc, partner) => {
+    acc[partner.id] = partner;
+    return acc;
+  }, {});
 
   const metrics = await fetchOrderMetrics(Object.keys(unique));
 

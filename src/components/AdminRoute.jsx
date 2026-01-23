@@ -1,12 +1,18 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { isUiLoggedIn, setUiLoggedIn } from "../utils/adminSession";
+import { endpoints } from "../services/http/endpoints";
+import { httpClient } from "../services/http/httpClient";
 
 async function fetchMe() {
-  const res = await fetch("/api/admin/auth/me", { credentials: "include" });
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json?.data?.actor || null;
+  try {
+    const { data } = await httpClient.request({
+      endpoint: endpoints.auth.whoami,
+    });
+    return data?.data?.actor || data?.actor || null;
+  } catch (error) {
+    return null;
+  }
 }
 
 export default function AdminRoute({ children }) {
@@ -15,10 +21,12 @@ export default function AdminRoute({ children }) {
 
   React.useEffect(() => {
     let mounted = true;
+
     (async () => {
       try {
         const actor = await fetchMe();
         if (!mounted) return;
+
         if (actor?.role === "admin") {
           setUiLoggedIn(true);
           setOk(true);
@@ -30,12 +38,17 @@ export default function AdminRoute({ children }) {
         if (mounted) setLoading(false);
       }
     })();
+
     return () => {
       mounted = false;
     };
   }, []);
 
-  if (loading) return <div style={{ padding: 24 }}>Memuat...</div>;
-  if (!ok && !isUiLoggedIn()) return <Navigate to="/" replace />;
+  if (loading) return null;
+
+  if (!ok || !isUiLoggedIn()) {
+    return <Navigate to="/login" replace />;
+  }
+
   return children;
 }

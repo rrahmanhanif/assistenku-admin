@@ -10,7 +10,8 @@ export const endpoints = {
     ledger: "/assistenku/admin/ledger",
     audit: "/assistenku/admin/audit",
     mitra: "/assistenku/admin/mitra",
-    verifyMitra: "/assistenku/admin/verify-mitra"
+    verifyMitra: "/assistenku/admin/verify-mitra",
+    payouts: "/api/admin/payouts"
   },
   partner: {
     list: "/partners"

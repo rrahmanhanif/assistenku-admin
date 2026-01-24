@@ -1,14 +1,15 @@
-import { logoutAdmin, refreshAdminToken } from "./adminAuth.js";
+import { httpClient } from "../services/http/httpClient";
+import { resolveBaseUrl } from "./baseUrl";
 import {
-  getAdminSession,
   getAdminToken,
-  isTokenExpired
-} from "./adminSession.js";
-import { httpClient } from "../services/http/httpClient.js";
-import { resolveBaseUrl } from "../services/http/baseUrl.js";
+  refreshAdminToken,
+  logoutAdmin,
+} from "./auth";
+import { isTokenExpired } from "./token";
 
 async function resolveToken() {
-  const session = getAdminSession();
+  const session = await getAdminToken?.();
+
   if (session?.token) {
     if (isTokenExpired(session.expiresAt)) {
       await logoutAdmin();
@@ -17,7 +18,7 @@ async function resolveToken() {
     return session.token;
   }
 
-  const token = getAdminToken();
+  const token = getAdminToken?.();
   if (token) return token;
 
   return await refreshAdminToken();
@@ -34,20 +35,26 @@ export async function adminFetch(path, options = {}) {
   const headers = new Headers(options.headers || {});
   headers.set("Authorization", `Bearer ${token}`);
 
-  if (options.body && !headers.has("Content-Type")) {
+  if (
+    options.body &&
+    !(options.body instanceof FormData) &&
+    !headers.has("Content-Type")
+  ) {
     headers.set("Content-Type", "application/json");
   }
 
   try {
-    const { data, response } = await httpClient.request({
-      endpoint: path,
-      method: options.method || "GET",
-      headers,
-      body: options.body,
-      baseUrl: resolveBaseUrl(),
-    });
+    const data = await httpClient.request(
+      path,
+      {
+        method: options.method || "GET",
+        headers,
+        body: options.body,
+        auth: false, // token sudah disuntik manual
+      }
+    );
 
-    return { data, response };
+    return { data };
   } catch (error) {
     if (error?.status === 401 || error?.status === 403) {
       await logoutAdmin();
@@ -65,7 +72,22 @@ export async function adminGet(path) {
 export async function adminPost(path, body) {
   const { data } = await adminFetch(path, {
     method: "POST",
-    body: body ?? {},
+    body,
+  });
+  return data;
+}
+
+export async function adminPut(path, body) {
+  const { data } = await adminFetch(path, {
+    method: "PUT",
+    body,
+  });
+  return data;
+}
+
+export async function adminDelete(path) {
+  const { data } = await adminFetch(path, {
+    method: "DELETE",
   });
   return data;
 }
